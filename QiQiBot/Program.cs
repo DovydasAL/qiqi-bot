@@ -19,6 +19,7 @@ namespace QiQiBot
                 .AddJsonFile($"appsettings.json")
                 .AddEnvironmentVariables();
 
+
             if (builder.Environment.EnvironmentName == "Development")
             {
                 configuration.AddUserSecrets<Program>();

@@ -50,7 +50,7 @@ namespace QiQiBot.HostedServices
             {
                 using var scope = _serviceProvider.CreateScope();
                 var clanService = scope.ServiceProvider.GetRequiredService<IClanService>();
-                IBotCommand handler = null;
+                IBotCommand? handler = null;
                 if (command.CommandName == ClanActivityCommand.Name)
                 {
                     handler = scope.ServiceProvider.GetRequiredService<ClanActivityCommand>();

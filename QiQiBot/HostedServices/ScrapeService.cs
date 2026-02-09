@@ -32,12 +32,17 @@ namespace QiQiBot.HostedServices
                     _logger.LogInformation($"Found {clans.Count} clans");
                     await ScrapeClans(clanService, clans);
                     _logger.LogInformation("Finished clan scrape");
-                    await Task.Delay(TimeSpan.FromMinutes(120), cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInformation("Scrape service is stopping due to cancellation.");
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError("Error during scraping: {ex}", ex);
                 }
+                await Task.Delay(TimeSpan.FromMinutes(120), cancellationToken);
+
 
             }
         }

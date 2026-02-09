@@ -1,0 +1,28 @@
+[Unit]
+Description=QiQi Discord Bot
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/qiqibot
+ExecStart=/usr/bin/dotnet /opt/qiqibot/QiQiBot.dll
+# If self-contained publish: ExecStart=/opt/qiqibot/QiQiBot
+
+# Restart on failure
+Restart=always
+RestartSec=10
+
+# User/group to run under (avoid root if possible)
+User=ec2-user
+Group=ec2-user
+
+# Environment (if you don't want to use /etc/environment)
+# Environment=DiscordBotToken=your-token-here
+EnvironmentFile=/etc/qiqibot.env
+
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
