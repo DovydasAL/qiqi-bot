@@ -37,7 +37,6 @@ namespace QiQiBot.HostedServices
 
                 try
                 {
-
                     await _client.BulkOverwriteGlobalApplicationCommandsAsync(applicationCommandProperties.ToArray());
                 }
                 catch (HttpException exception)
@@ -69,13 +68,6 @@ namespace QiQiBot.HostedServices
             };
             _client.Log += async (msg) => _logger.LogInformation(msg.ToString());
 
-            //  You can assign your bot token to a string, and pass that in to connect.
-            //  This is, however, insecure, particularly if you plan to have your code hosted in a public repository.
-
-            // Some alternative options would be to keep your token in an Environment Variable or a standalone file.
-            // var token = Environment.GetEnvironmentVariable("NameOfYourEnvironmentVariable");
-            // var token = File.ReadAllText("token.txt");
-            // var token = JsonConvert.DeserializeObject<AConfigurationClass>(File.ReadAllText("config.json")).Token;
             var token = _config.GetValue<string>("DiscordBotToken");
             await _client.LoginAsync(TokenType.Bot, token);
             await _client.StartAsync();

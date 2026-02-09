@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using QiQiBot.Exceptions;
 using QiQiBot.Models;
 
 namespace QiQiBot.Services
@@ -41,7 +42,7 @@ namespace QiQiBot.Services
             var clan = await _dbContext.Clans.FirstOrDefaultAsync(x => x.GuildId == guildId);
             if (clan == null)
             {
-                throw new Exception($"No clan found for guild id: {guildId}");
+                throw new NoClanRegisteredException(guildId);
             }
             return clan;
         }

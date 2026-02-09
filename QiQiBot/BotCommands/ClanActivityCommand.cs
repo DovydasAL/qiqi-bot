@@ -1,5 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using QiQiBot.Exceptions;
+using QiQiBot.Models;
 using QiQiBot.Services;
 using System.Text;
 
@@ -31,7 +33,16 @@ namespace QiQiBot.BotCommands
                 return;
             }
 
-            var clan = await _clanService.GetClanAsync(command.GuildId.Value);
+            Clan clan = null;
+            try
+            {
+                clan = await _clanService.GetClanAsync(command.GuildId.Value);
+            }
+            catch (NoClanRegisteredException ex)
+            {
+                await command.RespondAsync("No clan has been set for this server. Use `/clan-register` to set the clan for this server.");
+                return;
+            }
             var clanMembers = await _clanService.GetClanMembers(clan.Id);
             var sb = new StringBuilder();
             sb.AppendLine($"Name,Last Active");

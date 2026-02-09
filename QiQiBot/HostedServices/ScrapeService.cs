@@ -36,6 +36,7 @@ namespace QiQiBot.HostedServices
                 catch (OperationCanceledException)
                 {
                     _logger.LogInformation("Scrape service is stopping due to cancellation.");
+                    return;
                 }
                 catch (Exception ex)
                 {
