@@ -20,7 +20,6 @@ namespace QiQiBot.BotCommands
             var command = new SlashCommandBuilder();
             command.WithName(Name);
             command.WithDescription("View activity for members in clan");
-            command.WithDefaultMemberPermissions(GuildPermission.Administrator);
             return command.Build();
         }
 
@@ -36,13 +35,18 @@ namespace QiQiBot.BotCommands
             var clanMembers = await _clanService.GetClanMembers(clan.Id);
             var sb = new StringBuilder();
             sb.AppendLine($"Name,Last Active");
-            var sortedMembers = clanMembers.OrderBy(x => x.LastExperienceUpdate).ToList();
-            foreach (var member in sortedMembers)
+            var notNullSorted = clanMembers.Where(x => x.LastClanExperienceUpdate.HasValue).OrderBy(x => x.LastClanExperienceUpdate).ToList();
+            foreach (var member in notNullSorted)
             {
-                sb.AppendLine($"{member.Name},{member.LastExperienceUpdate.ToShortDateString()}");
+                sb.AppendLine($"{member.Name},{member.LastClanExperienceUpdate.Value.ToShortDateString()}");
+            }
+            var nullSorted = clanMembers.Where(x => !x.LastClanExperienceUpdate.HasValue).OrderBy(x => x.Name).ToList();
+            foreach (var member in nullSorted)
+            {
+                sb.AppendLine($"{member.Name},Unknown");
             }
             using var ms = new MemoryStream(Encoding.UTF8.GetBytes(sb.ToString()));
-            await command.RespondWithFileAsync(ms, $"clan_activity_{DateTime.UtcNow.ToString("yyyy-mm-dd")}.csv", "Here is the clan activity report.");
+            await command.RespondWithFileAsync(ms, $"clan_activity_{DateTime.UtcNow.ToString("yyyy-MM-dd")}.csv", "Here is the clan activity report.");
         }
     }
 }

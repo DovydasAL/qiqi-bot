@@ -56,6 +56,7 @@ namespace QiQiBot.HostedServices
                     });
                     _logger.LogInformation($"Retrieved {members.Count} members for clan {clan.Name}");
                     await clanService.UpdateClanMembers(clan.Id, members);
+                    await clanService.SetLastScraped(clan.Id, DateTime.UtcNow);
                     _logger.LogInformation($"Finished scraping clan {clan.Name}");
                 }
                 catch (FetchMembersException ex)
@@ -91,7 +92,7 @@ namespace QiQiBot.HostedServices
                 }
                 var name = splitLine[0].Replace("\uFFFD", " ");
                 var xp = splitLine[2];
-                result.Add(new ClanMember() { Name = name, Experience = long.Parse(xp) });
+                result.Add(new ClanMember() { Name = name, ClanExperience = long.Parse(xp) });
             }
             return result;
         }

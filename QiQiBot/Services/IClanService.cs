@@ -9,5 +9,6 @@ namespace QiQiBot.Services
         Task<Clan> GetClanAsync(ulong guildId);
         Task<List<ClanMember>> GetClanMembers(long clanId);
         Task UpdateClanMembers(long clanId, List<ClanMember> members);
+        Task SetLastScraped(long clanId, DateTime date);
     }
 }

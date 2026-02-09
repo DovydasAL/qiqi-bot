@@ -33,7 +33,11 @@ namespace QiQiBot
             builder.Services.AddScoped<ClanActivityCommand>();
             builder.Services.AddScoped<ClanRegisterCommand>();
             builder.Services.AddHttpClient();
-            builder.Services.AddDbContextPool<ClanContext>(opt => opt.UseNpgsql(config.GetValue<string>("DBConnectionString")));
+            builder.Services.AddDbContextPool<ClanContext>(opt =>
+            {
+                opt.UseNpgsql(config.GetValue<string>("DBConnectionString"), o => o.MigrationsHistoryTable("__migrations", "qiqi"));
+
+            });
             IHost host = builder.Build();
             host.Run();
         }

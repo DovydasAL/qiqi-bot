@@ -12,7 +12,7 @@ using QiQiBot.Models;
 namespace QiQiBot.Migrations
 {
     [DbContext(typeof(ClanContext))]
-    [Migration("20260209042640_InitialCreate")]
+    [Migration("20260209173537_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -29,45 +29,57 @@ namespace QiQiBot.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<decimal>("GuildId")
-                        .HasColumnType("numeric(20,0)");
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("guild_id");
+
+                    b.Property<DateTime?>("LastScraped")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_scraped");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("name");
 
                     b.HasKey("Id");
 
                     b.HasIndex("GuildId")
                         .IsUnique();
 
-                    b.ToTable("Clans");
+                    b.ToTable("clans", "qiqi");
                 });
 
             modelBuilder.Entity("QiQiBot.Models.ClanMember", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<long>("ClanExperience")
+                        .HasColumnType("bigint")
+                        .HasColumnName("clan_experience");
+
                     b.Property<long>("ClanId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("clan_id");
 
-                    b.Property<long>("Experience")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("LastExperienceUpdate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("LastClanExperienceUpdate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_clan_experience_update");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("name");
 
                     b.HasKey("Id");
 
@@ -76,7 +88,7 @@ namespace QiQiBot.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("ClanMembers");
+                    b.ToTable("clan_members", "qiqi");
                 });
 
             modelBuilder.Entity("QiQiBot.Models.ClanMember", b =>
