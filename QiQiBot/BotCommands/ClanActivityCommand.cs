@@ -3,6 +3,7 @@ using Discord.WebSocket;
 using QiQiBot.Services;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -39,13 +40,14 @@ namespace QiQiBot.BotCommands
             var clan = await _clanService.GetClanAsync(command.GuildId.Value);
             var clanMembers = await _clanService.GetClanMembers(clan.Id);
             var sb = new StringBuilder();
-            sb.AppendLine($"Clan Member Activity for guild: {command.GuildId.Value}");
-            foreach (var member in clanMembers)
+            sb.AppendLine($"Name,Last Active");
+            var sortedMembers = clanMembers.OrderBy(x => x.LastExperienceUpdate).ToList();
+            foreach (var member in sortedMembers)
             {
-                // Placeholder for actual clan member activity retrieval logic
-                sb.AppendLine($"{member}: Last active on {member.LastExperienceUpdate.ToShortDateString()}");
+                sb.AppendLine($"{member.Name},{member.LastExperienceUpdate.ToShortDateString()}");
             }
-            await command.RespondAsync(sb.ToString());
+            using var ms = new MemoryStream(Encoding.UTF8.GetBytes(sb.ToString()));
+            await command.RespondWithFileAsync(ms, $"clan_activity_{DateTime.UtcNow.ToString("yyyy-mm-dd")}.csv", "Here is the clan activity report.");
         }
     }
 }

@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using QiQiBot.BotCommands;
 using QiQiBot.Services;
@@ -20,18 +21,20 @@ namespace QiQiBot.HostedServices
         private DiscordSocketClient _client;
         private IServiceProvider _serviceProvider;
         private IConfiguration _config;
-        public BotService(DiscordSocketClient client, IServiceProvider serviceProvider, IConfiguration config)
+        private ILogger<BotService> _logger;
+        public BotService(DiscordSocketClient client, IServiceProvider serviceProvider, IConfiguration config, ILogger<BotService> logger)
         {
             _client = client;
             _serviceProvider = serviceProvider;
             _config = config;
+            _logger = logger;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             _client.Ready += async () =>
             {
-                Console.WriteLine("Bot is connected!");
+                _logger.LogInformation("Bot is ready");
                 List<ApplicationCommandProperties> applicationCommandProperties = new()
                 {
                     ClanRegisterCommand.BuildCommand(),
@@ -45,9 +48,8 @@ namespace QiQiBot.HostedServices
                 }
                 catch (HttpException exception)
                 {
-                    var json = JsonConvert.SerializeObject(exception.Errors, Formatting.Indented);
-
-                    Console.WriteLine(json);
+                    _logger.LogError("Failed to register application commands: {exception}", exception);
+                    Environment.Exit(1);
                 }
             };
             _client.SlashCommandExecuted += async (command) =>
@@ -71,7 +73,7 @@ namespace QiQiBot.HostedServices
                 }
                 await handler.Handle(command);
             };
-            _client.Log += async (msg) => Console.WriteLine(msg.ToString());
+            _client.Log += async (msg) => _logger.LogInformation(msg.ToString());
 
             //  You can assign your bot token to a string, and pass that in to connect.
             //  This is, however, insecure, particularly if you plan to have your code hosted in a public repository.

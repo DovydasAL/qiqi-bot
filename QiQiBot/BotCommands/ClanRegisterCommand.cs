@@ -46,6 +46,7 @@ namespace QiQiBot.BotCommands
             }
             var guildId = command.GuildId.Value;
             await _clanService.RegisterClan(clanName, guildId);
+            await command.RespondAsync($"Clan {clanName} has been registered for this server.");
         }
     }
 }

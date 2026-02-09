@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using QiQiBot.Exceptions;
 using QiQiBot.Models;
 using QiQiBot.Services;
@@ -15,10 +16,12 @@ namespace QiQiBot.HostedServices
     {
         private IServiceProvider _serviceProvider;
         private IHttpClientFactory _httpClientFactory;
-        public ScrapeService(IServiceProvider serviceProvider, IHttpClientFactory httpClientFactory) 
+        ILogger<ScrapeService> _logger;
+        public ScrapeService(IServiceProvider serviceProvider, IHttpClientFactory httpClientFactory, ILogger<ScrapeService> logger) 
         {
             _serviceProvider = serviceProvider;
             _httpClientFactory = httpClientFactory;
+            _logger = logger;
         }
         public async Task StartAsync(CancellationToken cancellationToken)
         {
@@ -26,18 +29,18 @@ namespace QiQiBot.HostedServices
             {
                 try
                 {
-                    Console.WriteLine("Starting clan scrape");
+                    _logger.LogInformation("Starting clan scrape");
                     using var scope = _serviceProvider.CreateScope();
                     var clanService = scope.ServiceProvider.GetRequiredService<IClanService>();
                     var clans = await clanService.GetClans();
-                    Console.WriteLine($"Found {clans.Count} clans");
+                    _logger.LogInformation($"Found {clans.Count} clans");
                     await ScrapeClans(clanService, clans);
-                    Console.WriteLine("Finished clan scrape");
+                    _logger.LogInformation("Finished clan scrape");
                     await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error during scraping: {ex.Message}");
+                    _logger.LogError("Error during scraping: {ex}", ex);
                 }
 
             }
@@ -49,24 +52,23 @@ namespace QiQiBot.HostedServices
             {
                 try
                 {
-                    Console.WriteLine($"Scraping clan {clan.Name}");
+                    _logger.LogInformation($"Scraping clan {clan.Name}");
                     var members = await GetClanMembersFromAPI(clan.Name);
                     members.ForEach(m =>
                     {
                         m.ClanId = clan.Id;
                     });
-                    Console.WriteLine($"Retrieved {members.Count} members for clan {clan.Name}");
+                    _logger.LogInformation($"Retrieved {members.Count} members for clan {clan.Name}");
                     await clanService.UpdateClanMembers(clan.Id, members);
-                    Console.WriteLine($"Finished scraping clan {clan.Name}");
+                    _logger.LogInformation($"Finished scraping clan {clan.Name}");
                 }
                 catch (FetchMembersException ex)
                 {
-                    Console.WriteLine($"Exception fetching members for clan {clan.Name}");
+                    _logger.LogError("Exception fetching members for clan {name}: {ex}", clan.Name, ex);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Unknown exception while processing clan {clan.Name}");
-                    Console.WriteLine(ex);
+                    _logger.LogError("Unknown exception while processing clan {name}: {ex}", clan.Name, ex);
                 }
             }
         }
@@ -79,11 +81,10 @@ namespace QiQiBot.HostedServices
             var response = await client.GetAsync(url);
             if (!response.IsSuccessStatusCode)
             {
-                Console.WriteLine($"Failed to retrieve members for clan {clan}: {response.StatusCode}");
                 throw new FetchMembersException(response.StatusCode);
             }
-            var content = await response.Content.ReadAsStringAsync();
-            var lines = content.Split("\n");
+            var content = await response.Content.ReadAsByteArrayAsync();
+            var lines = Encoding.UTF8.GetString(content).Split("\n");
             var result = new List<ClanMember>();
             foreach (var line in lines.Skip(1))
             {
@@ -92,7 +93,7 @@ namespace QiQiBot.HostedServices
                 {
                     continue;
                 }
-                var name = splitLine[0];
+                var name = splitLine[0].Replace("\uFFFD", " ");
                 var xp = splitLine[2];
                 result.Add(new ClanMember() { Name = name, Experience = long.Parse(xp) });
             }
