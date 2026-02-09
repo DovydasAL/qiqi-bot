@@ -1,0 +1,98 @@
+﻿using Discord;
+using Discord.Net;
+using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
+using QiQiBot.BotCommands;
+using QiQiBot.Services;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace QiQiBot.HostedServices
+{
+    internal class BotService : IHostedService, IAsyncDisposable
+    {
+        private DiscordSocketClient _client;
+        private IServiceProvider _serviceProvider;
+        private IConfiguration _config;
+        public BotService(DiscordSocketClient client, IServiceProvider serviceProvider, IConfiguration config)
+        {
+            _client = client;
+            _serviceProvider = serviceProvider;
+            _config = config;
+        }
+
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            _client.Ready += async () =>
+            {
+                Console.WriteLine("Bot is connected!");
+                List<ApplicationCommandProperties> applicationCommandProperties = new()
+                {
+                    ClanRegisterCommand.BuildCommand(),
+                    ClanActivityCommand.BuildCommand()
+                };
+
+                try
+                {
+
+                    await _client.BulkOverwriteGlobalApplicationCommandsAsync(applicationCommandProperties.ToArray());
+                }
+                catch (HttpException exception)
+                {
+                    var json = JsonConvert.SerializeObject(exception.Errors, Formatting.Indented);
+
+                    Console.WriteLine(json);
+                }
+            };
+            _client.SlashCommandExecuted += async (command) =>
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var clanService = scope.ServiceProvider.GetRequiredService<IClanService>();
+                IBotCommand handler = null;
+                if (command.CommandName == ClanActivityCommand.Name)
+                {
+                    handler = scope.ServiceProvider.GetRequiredService<ClanActivityCommand>();
+                }
+                else if (command.CommandName == ClanRegisterCommand.Name)
+                {
+                    handler = scope.ServiceProvider.GetRequiredService<ClanRegisterCommand>();
+                }
+                
+                if (handler == null)
+                {
+                    await command.RespondAsync("Sorry, an error occurred while processing your command.");
+                    return;
+                }
+                await handler.Handle(command);
+            };
+            _client.Log += async (msg) => Console.WriteLine(msg.ToString());
+
+            //  You can assign your bot token to a string, and pass that in to connect.
+            //  This is, however, insecure, particularly if you plan to have your code hosted in a public repository.
+
+            // Some alternative options would be to keep your token in an Environment Variable or a standalone file.
+            // var token = Environment.GetEnvironmentVariable("NameOfYourEnvironmentVariable");
+            // var token = File.ReadAllText("token.txt");
+            // var token = JsonConvert.DeserializeObject<AConfigurationClass>(File.ReadAllText("config.json")).Token;
+            var token = _config.GetValue<string>("DiscordBotToken");
+            await _client.LoginAsync(TokenType.Bot, token);
+            await _client.StartAsync();
+        }
+
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            await _client.StopAsync();
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+        }
+
+    }
+}
