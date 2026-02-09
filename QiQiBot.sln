@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36623.8 d17.14
+VisualStudioVersion = 17.14.36623.8
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QiQiBot", "QiQiBot\QiQiBot.csproj", "{114A5930-1857-430C-8E41-BABD77497103}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QiQiBot.UnitTests", "QiQiBot.UnitTests\QiQiBot.UnitTests.csproj", "{6231FFDC-F592-4485-9567-F13F6F51EAB1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{114A5930-1857-430C-8E41-BABD77497103}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{114A5930-1857-430C-8E41-BABD77497103}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{114A5930-1857-430C-8E41-BABD77497103}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6231FFDC-F592-4485-9567-F13F6F51EAB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6231FFDC-F592-4485-9567-F13F6F51EAB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6231FFDC-F592-4485-9567-F13F6F51EAB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6231FFDC-F592-4485-9567-F13F6F51EAB1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

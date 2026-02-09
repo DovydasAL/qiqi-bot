@@ -5,14 +5,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using QiQiBot.BotCommands;
 using QiQiBot.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QiQiBot.HostedServices
 {
@@ -65,7 +59,7 @@ namespace QiQiBot.HostedServices
                 {
                     handler = scope.ServiceProvider.GetRequiredService<ClanRegisterCommand>();
                 }
-                
+
                 if (handler == null)
                 {
                     await command.RespondAsync("Sorry, an error occurred while processing your command.");

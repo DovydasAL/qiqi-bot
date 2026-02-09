@@ -1,10 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using QiQiBot.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QiQiBot.Services
 {

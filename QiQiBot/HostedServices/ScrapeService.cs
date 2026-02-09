@@ -4,11 +4,7 @@ using Microsoft.Extensions.Logging;
 using QiQiBot.Exceptions;
 using QiQiBot.Models;
 using QiQiBot.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace QiQiBot.HostedServices
 {
@@ -17,7 +13,7 @@ namespace QiQiBot.HostedServices
         private IServiceProvider _serviceProvider;
         private IHttpClientFactory _httpClientFactory;
         ILogger<ScrapeService> _logger;
-        public ScrapeService(IServiceProvider serviceProvider, IHttpClientFactory httpClientFactory, ILogger<ScrapeService> logger) 
+        public ScrapeService(IServiceProvider serviceProvider, IHttpClientFactory httpClientFactory, ILogger<ScrapeService> logger)
         {
             _serviceProvider = serviceProvider;
             _httpClientFactory = httpClientFactory;
