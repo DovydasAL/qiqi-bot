@@ -34,8 +34,7 @@ namespace QiQiBot
             builder.Services.AddScoped<ClanActivityCommand>();
             builder.Services.AddScoped<ClanRegisterCommand>();
             builder.Services.AddHttpClient();
-            builder.Services.AddDbContextPool<ClanContext>(opt =>
-                opt.UseNpgsql("Server=localhost;Port=5432;Database=QiQiBot;User Id=postgres;Password=postgres;"));
+            builder.Services.AddDbContextPool<ClanContext>(opt => opt.UseNpgsql(config.GetValue<string>("DBConnectionString")));
             IHost host = builder.Build();
             host.Run();
         }
