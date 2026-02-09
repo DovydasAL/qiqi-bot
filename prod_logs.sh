@@ -1,0 +1,1 @@
+ssh -i  ~/.ssh/LightsailDefaultKey-us-east-2.pem ec2-user@3.15.144.92 "sudo journalctl -u qiqibot.service -f"
