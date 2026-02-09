@@ -32,7 +32,7 @@ namespace QiQiBot.HostedServices
                     _logger.LogInformation($"Found {clans.Count} clans");
                     await ScrapeClans(clanService, clans);
                     _logger.LogInformation("Finished clan scrape");
-                    await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
+                    await Task.Delay(TimeSpan.FromMinutes(120), cancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -42,7 +42,7 @@ namespace QiQiBot.HostedServices
             }
         }
 
-        private async Task ScrapeClans(IClanService clanService, List<Clan> clans)
+        private async Task ScrapeClans(IClanService clanService, List<Clan> clans, CancellationToken cancellationToken = default)
         {
             foreach (var clan in clans)
             {
@@ -58,6 +58,7 @@ namespace QiQiBot.HostedServices
                     await clanService.UpdateClanMembers(clan.Id, members);
                     await clanService.SetLastScraped(clan.Id, DateTime.UtcNow);
                     _logger.LogInformation($"Finished scraping clan {clan.Name}");
+                    await Task.Delay(TimeSpan.FromMinutes(2), cancellationToken);
                 }
                 catch (FetchMembersException ex)
                 {
