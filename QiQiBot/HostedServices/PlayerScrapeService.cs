@@ -36,6 +36,7 @@ namespace QiQiBot.HostedServices
                          if (players == null || players.Count == 0)
                          {
                              _logger.LogInformation("No players to scrape, skipping");
+                             await Task.Delay(TimeSpan.FromMinutes(5), cancellationToken);
                              continue;
                          }
                          _logger.LogInformation($"Checking {players.Count} player feeds");
