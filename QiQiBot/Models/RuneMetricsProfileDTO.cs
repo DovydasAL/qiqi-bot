@@ -4,6 +4,9 @@ namespace QiQiBot.Models
 {
     public class RuneMetricsProfileDTO
     {
+        [JsonIgnore]
+        public DateTime ScrapedDate { get; set; } = DateTime.UtcNow;
+
         [JsonPropertyName("error")]
         public string? Error { get; set; }
 

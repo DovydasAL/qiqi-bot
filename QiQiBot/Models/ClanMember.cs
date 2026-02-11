@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace QiQiBot.Models
 {
     [Index(nameof(Name), IsUnique = true)]
+    [Index(nameof(LastScrapedRuneMetricsProfile))]
     [Table("clan_members", Schema = "qiqi")]
     public class ClanMember
     {

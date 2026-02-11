@@ -32,7 +32,7 @@ namespace QiQiBot.HostedServices
                          _logger.LogInformation("Starting player scrape");
                          using var scope = _serviceProvider.CreateScope();
                          var playerService = scope.ServiceProvider.GetRequiredService<IPlayerService>();
-                         var players = await playerService.GetLeastRecentlyScrapedMembers(60, TimeSpan.FromMinutes(60));
+                         var players = await playerService.GetLeastRecentlyScrapedMembers(100, TimeSpan.FromMinutes(60));
                          if (players == null || players.Count == 0)
                          {
                              _logger.LogInformation("No players to scrape, skipping");
@@ -64,12 +64,13 @@ namespace QiQiBot.HostedServices
         private async Task<List<RuneMetricsProfileDTO>> ScrapePlayers(List<ClanMember> members, CancellationToken cancellationToken = default)
         {
             List<RuneMetricsProfileDTO> profiles = new List<RuneMetricsProfileDTO>();
+            var counter = 1;
             foreach (var member in members)
             {
                 try
                 {
                     await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
-                    _logger.LogInformation($"Scraping player {member.Name}");
+                    _logger.LogInformation($"Scraping player {counter}/{members.Count} {member.Name}");
                     var profile = await GetPlayerRuneMetricsProfile(member.Name);
                     _logger.LogInformation($"Retrieved player feed for {member.Name}");
                     profiles.Add(profile);
@@ -82,6 +83,7 @@ namespace QiQiBot.HostedServices
                 {
                     _logger.LogError(ex, "Unknown exception while processing player {name}", member.Name);
                 }
+                counter++;
             }
             return profiles;
         }
@@ -108,7 +110,6 @@ namespace QiQiBot.HostedServices
                 throw new FetchRuneMetricsException("Unknown error deserializing RuneMetrics profile");
             }
             profile.Name = name;
-
             return profile;
         }
 

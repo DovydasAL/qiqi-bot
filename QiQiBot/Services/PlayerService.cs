@@ -17,7 +17,6 @@ namespace QiQiBot.Services
 
         public async Task UpdatePlayersFromRuneMetrics(List<string> names, List<RuneMetricsProfileDTO> profiles)
         {
-            var operationDate = DateTime.UtcNow;
             var existingMembers = await _dbContext.ClanMembers.Where(x => names.Contains(x.Name)).ToListAsync();
             var profilesDictionary = profiles.ToDictionary(p => p.Name, p => p);
             foreach (var member in existingMembers)
@@ -26,7 +25,7 @@ namespace QiQiBot.Services
                 {
                     if (profilesDictionary.TryGetValue(member.Name, out var profile))
                     {
-                        member.LastScrapedRuneMetricsProfile = operationDate;
+                        member.LastScrapedRuneMetricsProfile = profile.ScrapedDate;
                         if (!string.IsNullOrEmpty(profile.Error))
                         {
                             if (profile.Error == "PROFILE_PRIVATE")
