@@ -21,6 +21,7 @@ namespace QiQiBot.HostedServices
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
+            _logger.LogInformation("StartAsync for ClanScrapeService");
             Task.Run(async () =>
             {
                 while (!cancellationToken.IsCancellationRequested)

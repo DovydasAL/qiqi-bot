@@ -22,6 +22,7 @@ namespace QiQiBot.HostedServices
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
+            _logger.LogInformation("StartAsync for PlayerScrapeService");
             Task.Run(async () =>
              {
                  while (!cancellationToken.IsCancellationRequested)
