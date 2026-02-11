@@ -44,17 +44,44 @@ namespace QiQiBot.BotCommands
                 return;
             }
             var clanMembers = await _clanService.GetClanMembers(clan.Id);
+
+            var membersWithActivity = clanMembers
+                .Select(m =>
+                {
+                    DateTime? activityDate = null;
+                    if (m.LastClanExperienceUpdate.HasValue && m.MostRecentRuneMetricsEvent.HasValue)
+                    {
+                        activityDate = m.LastClanExperienceUpdate > m.MostRecentRuneMetricsEvent
+                            ? m.LastClanExperienceUpdate
+                            : m.MostRecentRuneMetricsEvent;
+                    }
+                    else if (m.LastClanExperienceUpdate.HasValue)
+                    {
+                        activityDate = m.LastClanExperienceUpdate;
+                    }
+                    else if (m.MostRecentRuneMetricsEvent.HasValue)
+                    {
+                        activityDate = m.MostRecentRuneMetricsEvent;
+                    }
+
+                    return new
+                    {
+                        m.Name,
+                        ActivityDate = activityDate
+                    };
+                })
+                .OrderBy(x => x.ActivityDate.HasValue ? 0 : 1)   // non-null first
+                .ThenBy(x => x.ActivityDate)                     // oldest to newest; use .ThenByDescending for newest first
+                .ThenBy(x => x.Name)
+                .ToList();
+
             var sb = new StringBuilder();
-            sb.AppendLine($"Name,Last Active");
-            var notNullSorted = clanMembers.Where(x => x.LastClanExperienceUpdate.HasValue).OrderBy(x => x.LastClanExperienceUpdate).ToList();
-            foreach (var member in notNullSorted)
+            sb.AppendLine("Name,Last Active");
+
+            foreach (var m in membersWithActivity)
             {
-                sb.AppendLine($"{member.Name},{member.LastClanExperienceUpdate.Value.ToShortDateString()}");
-            }
-            var nullSorted = clanMembers.Where(x => !x.LastClanExperienceUpdate.HasValue).OrderBy(x => x.Name).ToList();
-            foreach (var member in nullSorted)
-            {
-                sb.AppendLine($"{member.Name},Unknown");
+                var lastActiveStr = m.ActivityDate?.ToShortDateString() ?? "Unknown";
+                sb.AppendLine($"{m.Name},{lastActiveStr}");
             }
             using var ms = new MemoryStream(Encoding.UTF8.GetBytes(sb.ToString()));
             await command.RespondWithFileAsync(ms, $"clan_activity_{DateTime.UtcNow.ToString("yyyy-MM-dd")}.csv", "Here is the clan activity report.");

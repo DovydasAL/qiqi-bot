@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using QiQiBot.Models;
@@ -11,9 +12,11 @@ using QiQiBot.Models;
 namespace QiQiBot.Migrations
 {
     [DbContext(typeof(ClanContext))]
-    partial class ClanContextModelSnapshot : ModelSnapshot
+    [Migration("20260211052158_LastScrapedRSS")]
+    partial class LastScrapedRSS
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -69,30 +72,18 @@ namespace QiQiBot.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("clan_id");
 
-                    b.Property<bool>("InvalidRuneMetricsProfile")
-                        .HasColumnType("boolean")
-                        .HasColumnName("invalid_runemetrics_profile");
-
                     b.Property<DateTime?>("LastClanExperienceUpdate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_clan_experience_update");
 
-                    b.Property<DateTime?>("LastScrapedRuneMetricsProfile")
+                    b.Property<DateTime?>("LastScrapedRSSFeed")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_scraped_runemetrics_profile");
-
-                    b.Property<DateTime?>("MostRecentRuneMetricsEvent")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("most_recent_runemetrics_event");
+                        .HasColumnName("last_scraped_rss_feed");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("name");
-
-                    b.Property<bool>("PrivateRuneMetricsProfile")
-                        .HasColumnType("boolean")
-                        .HasColumnName("private_runemetrics_profile");
 
                     b.HasKey("Id");
 

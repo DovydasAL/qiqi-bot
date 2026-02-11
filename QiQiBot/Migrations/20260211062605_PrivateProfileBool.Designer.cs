@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using QiQiBot.Models;
@@ -11,9 +12,11 @@ using QiQiBot.Models;
 namespace QiQiBot.Migrations
 {
     [DbContext(typeof(ClanContext))]
-    partial class ClanContextModelSnapshot : ModelSnapshot
+    [Migration("20260211062605_PrivateProfileBool")]
+    partial class PrivateProfileBool
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -69,17 +72,13 @@ namespace QiQiBot.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("clan_id");
 
-                    b.Property<bool>("InvalidRuneMetricsProfile")
-                        .HasColumnType("boolean")
-                        .HasColumnName("invalid_runemetrics_profile");
-
                     b.Property<DateTime?>("LastClanExperienceUpdate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_clan_experience_update");
 
                     b.Property<DateTime?>("LastScrapedRuneMetricsProfile")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_scraped_runemetrics_profile");
+                        .HasColumnName("last_scraped_rune_metrics_profile");
 
                     b.Property<DateTime?>("MostRecentRuneMetricsEvent")
                         .HasColumnType("timestamp with time zone")
@@ -90,9 +89,8 @@ namespace QiQiBot.Migrations
                         .HasColumnType("text")
                         .HasColumnName("name");
 
-                    b.Property<bool>("PrivateRuneMetricsProfile")
-                        .HasColumnType("boolean")
-                        .HasColumnName("private_runemetrics_profile");
+                    b.Property<bool>("PrivateRuneMetrics")
+                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 

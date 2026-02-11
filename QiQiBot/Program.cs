@@ -28,9 +28,11 @@ namespace QiQiBot
             var config = configuration.Build();
             builder.Services.AddSingleton<IConfiguration>(config);
             builder.Services.AddHostedService<BotService>();
-            builder.Services.AddHostedService<ScrapeService>();
+            builder.Services.AddHostedService<ClanScrapeService>();
+            builder.Services.AddHostedService<PlayerScrapeService>();
             builder.Services.AddSingleton<DiscordSocketClient>();
             builder.Services.AddScoped<IClanService, ClanService>();
+            builder.Services.AddScoped<IPlayerService, PlayerService>();
             builder.Services.AddScoped<ClanActivityCommand>();
             builder.Services.AddScoped<ClanRegisterCommand>();
             builder.Services.AddHttpClient();

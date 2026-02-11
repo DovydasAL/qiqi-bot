@@ -8,44 +8,48 @@ using System.Text;
 
 namespace QiQiBot.HostedServices
 {
-    public class ScrapeService : IHostedService, IAsyncDisposable
+    public class ClanScrapeService : IHostedService, IAsyncDisposable
     {
         private IServiceProvider _serviceProvider;
         private IHttpClientFactory _httpClientFactory;
-        ILogger<ScrapeService> _logger;
-        public ScrapeService(IServiceProvider serviceProvider, IHttpClientFactory httpClientFactory, ILogger<ScrapeService> logger)
+        ILogger<ClanScrapeService> _logger;
+        public ClanScrapeService(IServiceProvider serviceProvider, IHttpClientFactory httpClientFactory, ILogger<ClanScrapeService> logger)
         {
             _serviceProvider = serviceProvider;
             _httpClientFactory = httpClientFactory;
             _logger = logger;
         }
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken)
         {
-            while (!cancellationToken.IsCancellationRequested)
+            Task.Run(async () =>
             {
-                try
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    _logger.LogInformation("Starting clan scrape");
-                    using var scope = _serviceProvider.CreateScope();
-                    var clanService = scope.ServiceProvider.GetRequiredService<IClanService>();
-                    var clans = await clanService.GetClans();
-                    _logger.LogInformation($"Found {clans.Count} clans");
-                    await ScrapeClans(clanService, clans);
-                    _logger.LogInformation("Finished clan scrape");
-                }
-                catch (OperationCanceledException)
-                {
-                    _logger.LogInformation("Scrape service is stopping due to cancellation.");
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError("Error during scraping: {ex}", ex);
-                }
-                await Task.Delay(TimeSpan.FromMinutes(120), cancellationToken);
+                    try
+                    {
+                        _logger.LogInformation("Starting clan scrape");
+                        using var scope = _serviceProvider.CreateScope();
+                        var clanService = scope.ServiceProvider.GetRequiredService<IClanService>();
+                        var clans = await clanService.GetClans();
+                        _logger.LogInformation($"Found {clans.Count} clans");
+                        await ScrapeClans(clanService, clans);
+                        _logger.LogInformation("Finished clan scrape");
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        _logger.LogInformation("Scrape service is stopping due to cancellation.");
+                        return;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error during scraping");
+                    }
+                    await Task.Delay(TimeSpan.FromMinutes(120), cancellationToken);
 
 
-            }
+                }
+            }, cancellationToken);
+            return Task.CompletedTask;
         }
 
         private async Task ScrapeClans(IClanService clanService, List<Clan> clans, CancellationToken cancellationToken = default)
@@ -68,11 +72,11 @@ namespace QiQiBot.HostedServices
                 }
                 catch (FetchMembersException ex)
                 {
-                    _logger.LogError("Exception fetching members for clan {name}: {ex}", clan.Name, ex);
+                    _logger.LogError(ex, "Exception fetching members for clan {name}", clan.Name);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError("Unknown exception while processing clan {name}: {ex}", clan.Name, ex);
+                    _logger.LogError(ex, "Unknown exception while processing clan {name}", clan.Name);
                 }
             }
         }

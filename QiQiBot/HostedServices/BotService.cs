@@ -41,7 +41,7 @@ namespace QiQiBot.HostedServices
                 }
                 catch (HttpException exception)
                 {
-                    _logger.LogError("Failed to register application commands: {exception}", exception);
+                    _logger.LogError(exception, "Failed to register application commands");
                     Environment.Exit(1);
                 }
             };
