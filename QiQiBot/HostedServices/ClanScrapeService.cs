@@ -82,7 +82,7 @@ namespace QiQiBot.HostedServices
             }
         }
 
-        private async Task<List<ClanMember>> GetClanMembersFromAPI(string clan)
+        private async Task<List<Player>> GetClanMembersFromAPI(string clan)
         {
             var client = _httpClientFactory.CreateClient();
             var url = $"http://services.runescape.com/m=clan-hiscores/members_lite.ws?clanName={clan}";
@@ -94,7 +94,7 @@ namespace QiQiBot.HostedServices
             }
             var content = await response.Content.ReadAsByteArrayAsync();
             var lines = Encoding.UTF8.GetString(content).Split("\n");
-            var result = new List<ClanMember>();
+            var result = new List<Player>();
             foreach (var line in lines.Skip(1))
             {
                 var splitLine = line.Split(",");
@@ -104,7 +104,7 @@ namespace QiQiBot.HostedServices
                 }
                 var name = splitLine[0].Replace("\uFFFD", " ");
                 var xp = splitLine[2];
-                result.Add(new ClanMember() { Name = name, ClanExperience = long.Parse(xp) });
+                result.Add(new Player() { Name = name, ClanExperience = long.Parse(xp) });
             }
             return result;
         }

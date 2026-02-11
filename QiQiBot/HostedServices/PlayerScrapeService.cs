@@ -61,7 +61,7 @@ namespace QiQiBot.HostedServices
             return Task.CompletedTask;
         }
 
-        private async Task<List<RuneMetricsProfileDTO>> ScrapePlayers(List<ClanMember> members, CancellationToken cancellationToken = default)
+        private async Task<List<RuneMetricsProfileDTO>> ScrapePlayers(List<Player> members, CancellationToken cancellationToken = default)
         {
             List<RuneMetricsProfileDTO> profiles = new List<RuneMetricsProfileDTO>();
             var counter = 1;

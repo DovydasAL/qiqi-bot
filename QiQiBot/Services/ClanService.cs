@@ -47,9 +47,9 @@ namespace QiQiBot.Services
             return clan;
         }
 
-        public Task<List<ClanMember>> GetClanMembers(long clanId)
+        public Task<List<Player>> GetClanMembers(long clanId)
         {
-            return _dbContext.ClanMembers.Where(x => x.ClanId == clanId).ToListAsync();
+            return _dbContext.Players.Where(x => x.ClanId == clanId).ToListAsync();
         }
 
         public async Task<List<Clan>> GetClans()
@@ -57,38 +57,50 @@ namespace QiQiBot.Services
             return await _dbContext.Clans.ToListAsync();
         }
 
-        public async Task UpdateClanMembers(long clanId, List<ClanMember> members)
+        public async Task UpdateClanMembers(long clanId, List<Player> members)
         {
             var updateDate = DateTime.UtcNow;
             var existingMembers = await GetClanMembers(clanId);
             var existingMemberDictionary = existingMembers.ToDictionary(m => m.Name, m => m);
             var totalNew = 0;
             var totalUpdated = 0;
+            var totalDeleted = 0;
             foreach (var member in members)
             {
                 if (existingMemberDictionary.TryGetValue(member.Name, out var existingMember))
                 {
+                    // If a player switches clans, reset their experience to what we found
                     if (member.ClanId != existingMember.ClanId)
                     {
                         existingMember.ClanId = member.ClanId;
                         existingMember.ClanExperience = member.ClanExperience;
-                        totalUpdated++;
+                        totalNew++;
                     }
+                    // If the player is in the same clan but has more experience, update it
                     else if (member.ClanExperience > existingMember.ClanExperience)
                     {
                         existingMember.ClanExperience = member.ClanExperience;
                         existingMember.LastClanExperienceUpdate = updateDate;
                         totalUpdated++;
                     }
-
                 }
                 else
                 {
-                    _dbContext.ClanMembers.Add(member);
+                    _dbContext.Players.Add(member);
                     totalNew++;
                 }
             }
-            _logger.LogInformation($"Updating Clan {clanId} - Total members: {members.Count}, New members: {totalNew}, Updated members: {totalUpdated}");
+            var membersDictionary = members.ToDictionary(m => m.Name, m => m);
+            // If an existing member is no longer in the clan, set their ClanId to null
+            foreach (var existingMember in existingMembers)
+            {
+                if (!membersDictionary.ContainsKey(existingMember.Name))
+                {
+                    existingMember.ClanId = null;
+                    totalDeleted++;
+                }
+            }
+            _logger.LogInformation($"Updating Clan {clanId} - Total members: {members.Count}, New members: {totalNew}, Updated members: {totalUpdated}, Deleted members: {totalDeleted}");
             await _dbContext.SaveChangesAsync();
         }
 

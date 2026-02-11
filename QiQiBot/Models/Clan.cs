@@ -23,6 +23,6 @@ namespace QiQiBot.Models
         [Column("last_scraped")]
         public DateTime? LastScraped { get; set; }
 
-        public virtual ICollection<ClanMember> ClanMembers { get; } = new List<ClanMember>();
+        public virtual ICollection<Player> ClanMembers { get; } = new List<Player>();
     }
 }

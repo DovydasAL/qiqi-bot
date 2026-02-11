@@ -6,8 +6,8 @@ namespace QiQiBot.Models
 {
     [Index(nameof(Name), IsUnique = true)]
     [Index(nameof(LastScrapedRuneMetricsProfile))]
-    [Table("clan_members", Schema = "qiqi")]
-    public class ClanMember
+    [Table("players", Schema = "qiqi")]
+    public class Player
     {
         [Key]
         [Column("id")]
@@ -36,9 +36,8 @@ namespace QiQiBot.Models
         [Column("invalid_runemetrics_profile")]
         public bool InvalidRuneMetricsProfile { get; set; }
 
-        [Required]
         [Column("clan_id")]
-        public long ClanId { get; set; }
-        public Clan Clan { get; set; } = null!;
+        public long? ClanId { get; set; }
+        public Clan? Clan { get; set; }
     }
 }
