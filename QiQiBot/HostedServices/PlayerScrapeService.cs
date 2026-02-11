@@ -32,7 +32,7 @@ namespace QiQiBot.HostedServices
                          _logger.LogInformation("Starting player scrape");
                          using var scope = _serviceProvider.CreateScope();
                          var playerService = scope.ServiceProvider.GetRequiredService<IPlayerService>();
-                         var players = await playerService.GetLeastRecentlyScrapedMembers(100, TimeSpan.FromMinutes(60));
+                         var players = await playerService.GetLeastRecentlyScrapedMembers(100, TimeSpan.FromMinutes(120));
                          if (players == null || players.Count == 0)
                          {
                              _logger.LogInformation("No players to scrape, skipping");
