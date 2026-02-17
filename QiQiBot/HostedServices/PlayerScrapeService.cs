@@ -166,9 +166,12 @@ public sealed class PlayerScrapeService : BackgroundService
         @".*visited my clan citadel.*",
         @".found a crystal triskelion fragment.*",
         @".*at least (?!200000000(?:\D|$))\d+ experience points.*",
-        @".*an abyssal whip.*",
-        @".*killed \d+.*",
+        @".*abyssal whip.*",
+        @".*dragon helm.*",
         @".*killed .*",
+        @".*bar crawl card.*",
+        @".*mystic battlestaves.*",
+
     };
     private bool ShouldFilterActivity(RuneMetricsActivityDTO activity)
     {
