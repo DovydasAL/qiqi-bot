@@ -168,7 +168,7 @@ public sealed class PlayerScrapeService : BackgroundService
         @".*at least (?!200000000(?:\D|$))\d+ experience points.*",
         @".*an abyssal whip.*",
         @".*killed \d+.*",
-        @".*killed  .*",
+        @".*killed .*",
     };
     private bool ShouldFilterActivity(RuneMetricsActivityDTO activity)
     {
