@@ -7,6 +7,7 @@ using QiQiBot.Models;
 using QiQiBot.Services;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using static QiQiBot.Models.RuneMetricsProfileDTO;
 
 namespace QiQiBot.HostedServices;
@@ -120,7 +121,12 @@ public sealed class PlayerScrapeService : BackgroundService
                 var activities = kvp.Value;
                 foreach (var activity in activities)
                 {
-                    var message = $"{activity.RuneMetricsStringDateToObject().ToString("g")}: {player.Name}: {activity.Details}";
+                    string prefix = "";
+                    if (ShouldFilterActivity(activity))
+                    {
+                        prefix = "[To Be Filtered] ";
+                    }
+                    var message = $"{prefix}{activity.RuneMetricsStringDateToObject().ToString("g")}: {player.Name}: {activity.Details}";
                     sb.AppendLine(message);
                 }
             }
@@ -152,6 +158,20 @@ public sealed class PlayerScrapeService : BackgroundService
                 await channel.SendMessageAsync(sb.ToString());
             }
         }
+    }
+
+    private static readonly string[] FILTER_ACTIVITY_REGEXPS = new[]
+    {
+        @".*fealty rank.*",
+        @".*visited my clan citadel.*",
+        @".found a crystal triskelion fragment.*",
+        @".*at least (?!200000000(?:\D|$))\d+ experience points.*",
+        @".*an abyssal whip.*",
+        @".*killed \d+.*",
+    };
+    private bool ShouldFilterActivity(RuneMetricsActivityDTO activity)
+    {
+        return FILTER_ACTIVITY_REGEXPS.Any(r => Regex.IsMatch(activity.Details.ToLower(), r.ToLower()));
     }
 
     private async Task<Dictionary<Player, List<RuneMetricsActivityDTO>>> GetAchievementsToSend(
