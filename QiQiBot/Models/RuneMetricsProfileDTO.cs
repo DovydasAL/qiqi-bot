@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Globalization;
+using System.Text.Json.Serialization;
 
 namespace QiQiBot.Models
 {
@@ -62,6 +63,19 @@ namespace QiQiBot.Models
 
             [JsonPropertyName("text")]
             public string? Text { get; set; }
+
+            public DateTime RuneMetricsStringDateToObject()
+            {
+                // Example: "18-Jan-2026 23:52"
+                const string format = "dd-MMM-yyyy HH:mm";
+
+                return DateTime.ParseExact(
+                    Date,
+                    format,
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal
+                );
+            }
         }
 
         public class RuneMetricsSkillValueDTO

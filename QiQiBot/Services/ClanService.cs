@@ -17,34 +17,69 @@ namespace QiQiBot.Services
 
         public async Task RegisterClan(string clanName, ulong guildId)
         {
-            var existing = _dbContext.Clans.FirstOrDefault(x => x.GuildId == guildId);
-            if (existing != null)
+            var guild = await _dbContext.Guilds.Include(x => x.Clan).FirstOrDefaultAsync(x => x.GuildId == guildId);
+            if (guild == null)
             {
-                _logger.LogInformation($"Updating clan for guild {guildId} from {existing.Name} to {clanName}");
-                existing.Name = clanName;
-                _dbContext.Clans.Update(existing);
+                guild = new Guild
+                {
+                    GuildId = guildId
+                };
+                await _dbContext.Guilds.AddAsync(guild);
+            }
+
+            var clan = await _dbContext.Clans.FirstOrDefaultAsync(x => x.Name == clanName);
+            if (clan == null)
+            {
+                _logger.LogInformation($"Creating clan {clanName} for guild {guildId}");
+                clan = new Clan
+                {
+                    Name = clanName
+                };
+                await _dbContext.Clans.AddAsync(clan);
+            }
+
+            var previousClanName = guild.Clan?.Name;
+            var isSameClan = guild.ClanId.HasValue && clan.Id != 0 && guild.ClanId.Value == clan.Id;
+            if (isSameClan)
+            {
+                _logger.LogInformation($"Guild {guildId} already registered to clan {clanName}");
             }
             else
             {
-                _logger.LogInformation($"Creating clan for guild {guildId} with name {clanName}");
-                var clan = new Clan()
+                if (previousClanName == null)
                 {
-                    Name = clanName,
-                    GuildId = guildId
-                };
-                await _dbContext.AddAsync(clan);
+                    _logger.LogInformation($"Assigning clan {clanName} to guild {guildId}");
+                }
+                else
+                {
+                    _logger.LogInformation($"Updating clan for guild {guildId} from {previousClanName} to {clanName}");
+                }
+
+                guild.Clan = clan;
             }
+
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task SetAchievementChannel(ulong guildId, ulong? channelId)
+        {
+            var guild = await _dbContext.Guilds.FirstOrDefaultAsync(x => x.GuildId == guildId);
+            if (guild == null)
+            {
+                throw new Exception($"No guild found with guildId {guildId}");
+            }
+            guild.AchievementsChannelId = channelId;
             await _dbContext.SaveChangesAsync();
         }
 
         public async Task<Clan> GetClanAsync(ulong guildId)
         {
-            var clan = await _dbContext.Clans.FirstOrDefaultAsync(x => x.GuildId == guildId);
-            if (clan == null)
+            var guild = await _dbContext.Guilds.Include(x => x.Clan).FirstOrDefaultAsync(x => x.GuildId == guildId);
+            if (guild == null || guild.Clan == null)
             {
                 throw new NoClanRegisteredException(guildId);
             }
-            return clan;
+            return guild.Clan;
         }
 
         public Task<List<Player>> GetClanMembers(long clanId)
@@ -54,7 +89,7 @@ namespace QiQiBot.Services
 
         public async Task<List<Clan>> GetClans()
         {
-            return await _dbContext.Clans.ToListAsync();
+            return await _dbContext.Clans.Include(x => x.Guilds).ToListAsync();
         }
 
         public async Task UpdateClanMembers(long clanId, List<Player> members)

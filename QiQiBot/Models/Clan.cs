@@ -1,10 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace QiQiBot.Models
 {
-    [Index(nameof(GuildId), IsUnique = true)]
     [Table("clans", Schema = "qiqi")]
     public class Clan
     {
@@ -16,13 +14,11 @@ namespace QiQiBot.Models
         [Column("name")]
         public string Name { get; set; } = null!;
 
-        [Required]
-        [Column("guild_id")]
-        public ulong GuildId { get; set; }
-
         [Column("last_scraped")]
         public DateTime? LastScraped { get; set; }
 
         public virtual ICollection<Player> ClanMembers { get; } = new List<Player>();
+        public virtual ICollection<Guild> Guilds { get; } = new List<Guild>();
+
     }
 }

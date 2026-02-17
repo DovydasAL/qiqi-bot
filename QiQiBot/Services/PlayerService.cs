@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using QiQiBot.Models;
-using System.Globalization;
 
 namespace QiQiBot.Services
 {
@@ -40,7 +39,7 @@ namespace QiQiBot.Services
                             continue;
                         }
                         var dateList = profile.Activities
-                            .Select(x => RuneMetricsStringDateToObject(x.Date))
+                            .Select(x => x.RuneMetricsStringDateToObject())
                             .ToList();
                         var mostRecentActivityDate = dateList.OrderByDescending(x => x).First();
                         member.MostRecentRuneMetricsEvent = mostRecentActivityDate;
@@ -54,18 +53,7 @@ namespace QiQiBot.Services
             await _dbContext.SaveChangesAsync();
         }
 
-        private DateTime RuneMetricsStringDateToObject(string date)
-        {
-            // Example: "18-Jan-2026 23:52"
-            const string format = "dd-MMM-yyyy HH:mm";
 
-            return DateTime.ParseExact(
-                date,
-                format,
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal
-            );
-        }
 
         public Task<List<Player>> GetLeastRecentlyScrapedMembers(int n, TimeSpan olderThan)
         {
@@ -73,6 +61,11 @@ namespace QiQiBot.Services
                 .Where(x => x.ClanId != null && !x.PrivateRuneMetricsProfile && !x.InvalidRuneMetricsProfile && (x.LastScrapedRuneMetricsProfile == null || x.LastScrapedRuneMetricsProfile < DateTime.UtcNow - olderThan))
                 .OrderBy(x => x.LastScrapedRuneMetricsProfile == null).ThenBy(x => x.LastScrapedRuneMetricsProfile)
                 .Take(n).ToListAsync();
+        }
+
+        public Task<List<Player>> GetPlayersByNames(List<string> names)
+        {
+            return _dbContext.Players.Where(x => names.Contains(x.Name)).ToListAsync();
         }
     }
 }

@@ -70,7 +70,8 @@ internal sealed class BotService : IHostedService, IAsyncDisposable
         var applicationCommandProperties = new List<ApplicationCommandProperties>
         {
             ClanRegisterCommand.BuildCommand(),
-            ClanActivityCommand.BuildCommand()
+            ClanActivityCommand.BuildCommand(),
+            ClanSetAchievementChannel.BuildCommand(),
         };
 
         try
@@ -102,6 +103,8 @@ internal sealed class BotService : IHostedService, IAsyncDisposable
                 => scope.ServiceProvider.GetRequiredService<ClanActivityCommand>(),
             var name when name == ClanRegisterCommand.Name
                 => scope.ServiceProvider.GetRequiredService<ClanRegisterCommand>(),
+            var name when name == ClanSetAchievementChannel.Name
+            => scope.ServiceProvider.GetRequiredService<ClanSetAchievementChannel>(),
             _ => null
         };
 
