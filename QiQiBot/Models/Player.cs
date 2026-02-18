@@ -36,6 +36,9 @@ namespace QiQiBot.Models
         [Column("invalid_runemetrics_profile")]
         public bool InvalidRuneMetricsProfile { get; set; }
 
+        [Column("last_capped")]
+        public DateTime? LastCapped { get; set; }
+
         [Column("clan_id")]
         public long? ClanId { get; set; }
         public Clan? Clan { get; set; }

@@ -118,7 +118,7 @@ public sealed class PlayerScrapeService : BackgroundService
             foreach (var kvp in clanAchievements)
             {
                 var player = kvp.Key;
-                var activities = kvp.Value;
+                var activities = kvp.Value.OrderBy(x => x.RuneMetricsStringDateToObject());
                 foreach (var activity in activities)
                 {
                     string prefix = "";
@@ -160,22 +160,25 @@ public sealed class PlayerScrapeService : BackgroundService
         }
     }
 
-    private static readonly string[] FILTER_ACTIVITY_REGEXPS = new[]
+    private static readonly string[] FILTER_ACTIVITY_TEXT_REGEXPS = new[]
     {
-        @".*fealty rank.*",
-        @".*visited my clan citadel.*",
-        @".found a crystal triskelion fragment.*",
-        @".*at least (?!200000000(?:\D|$))\d+ experience points.*",
+        @".*(?!200000000(?:\D|$))\d+XP.*",
+        @".*songs unlocked.*",
+        @".*Quest complete.*",
+        @".*Clan Fealty.*",
+        @".*Visited my Clan Citadel.*",
+        @".*crystal triskelion fragment.*",
         @".*abyssal whip.*",
         @".*dragon helm.*",
-        @".*killed .*",
-        @".*bar crawl card.*",
-        @".*mystic battlestaves.*",
-
+        @".*shield left half.*",
+        @".*archaeological mystery.*",
+        @".*songs unlocked.*",
+        @".*killed.*",
+        @".*defeated.*",
     };
     private bool ShouldFilterActivity(RuneMetricsActivityDTO activity)
     {
-        return FILTER_ACTIVITY_REGEXPS.Any(r => Regex.IsMatch(activity.Details.ToLower(), r.ToLower()));
+        return FILTER_ACTIVITY_TEXT_REGEXPS.Any(r => Regex.IsMatch(activity.Text.ToLower(), r.ToLower()));
     }
 
     private async Task<Dictionary<Player, List<RuneMetricsActivityDTO>>> GetAchievementsToSend(

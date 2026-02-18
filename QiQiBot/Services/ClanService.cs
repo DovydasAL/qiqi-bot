@@ -150,5 +150,32 @@ namespace QiQiBot.Services
             }
         }
 
+        public async Task SetCitadelResetTime(ulong guildId, long day, string time)
+        {
+            var guild = await _dbContext.Guilds.FirstOrDefaultAsync(x => x.GuildId == guildId);
+            if (guild == null)
+            {
+                throw new Exception($"No guild found with guildId {guildId}");
+            }
+            // Ensure time is in the format HH:mm and between 00:00 and 23:59
+            if (!TimeSpan.TryParse(time, out var capResetTime) || capResetTime < TimeSpan.Zero || capResetTime >= TimeSpan.FromDays(1))
+            {
+                throw new Exception($"Invalid cap reset time: {time}. Time must be in the format HH:mm and between 00:00 and 23:59.");
+            }
+            guild.CapResetDay = day;
+            guild.CapResetTime = time;
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task<Guild> GetGuild(ulong guildId)
+        {
+            var guild = await _dbContext.Guilds.Include(x => x.Clan).FirstOrDefaultAsync(x => x.GuildId == guildId);
+            if (guild == null)
+            {
+                throw new NoClanRegisteredException(guildId);
+            }
+            return guild;
+        }
+
     }
 }

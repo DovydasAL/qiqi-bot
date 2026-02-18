@@ -72,6 +72,8 @@ internal sealed class BotService : IHostedService, IAsyncDisposable
             ClanRegisterCommand.BuildCommand(),
             ClanActivityCommand.BuildCommand(),
             ClanSetAchievementChannel.BuildCommand(),
+            ClanSetCitadelResetCommand.BuildCommand(),
+            ClanCappedCommand.BuildCommand(),
         };
 
         try
@@ -104,7 +106,11 @@ internal sealed class BotService : IHostedService, IAsyncDisposable
             var name when name == ClanRegisterCommand.Name
                 => scope.ServiceProvider.GetRequiredService<ClanRegisterCommand>(),
             var name when name == ClanSetAchievementChannel.Name
-            => scope.ServiceProvider.GetRequiredService<ClanSetAchievementChannel>(),
+                => scope.ServiceProvider.GetRequiredService<ClanSetAchievementChannel>(),
+            var name when name == ClanSetCitadelResetCommand.Name
+                => scope.ServiceProvider.GetRequiredService<ClanSetCitadelResetCommand>(),
+            var name when name == ClanCappedCommand.Name
+                => scope.ServiceProvider.GetRequiredService<ClanCappedCommand>(),
             _ => null
         };
 

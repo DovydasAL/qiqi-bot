@@ -19,6 +19,12 @@ namespace QiQiBot.Models
         [Column("achievements_channel_id")]
         public ulong? AchievementsChannelId { get; set; }
 
+        [Column("cap_reset_day")]
+        public long? CapResetDay { get; set; }
+
+        [Column("cap_reset_time")]
+        public string? CapResetTime { get; set; }
+
         [Column("clan_id")]
         public long? ClanId { get; set; }
         public Clan? Clan { get; set; }

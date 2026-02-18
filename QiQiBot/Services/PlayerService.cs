@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using QiQiBot.Models;
+using System.Text.RegularExpressions;
 
 namespace QiQiBot.Services
 {
@@ -38,10 +39,13 @@ namespace QiQiBot.Services
                             }
                             continue;
                         }
-                        var dateList = profile.Activities
-                            .Select(x => x.RuneMetricsStringDateToObject())
-                            .ToList();
-                        var mostRecentActivityDate = dateList.OrderByDescending(x => x).First();
+                        var sortedActivites = profile.Activities.OrderByDescending(x => x.RuneMetricsStringDateToObject()).ToList();
+                        var capActivity = sortedActivites.FirstOrDefault(x => Regex.IsMatch(x.Text.ToLower(), @".*capped at my clan citadel.*"));
+                        if (capActivity != null)
+                        {
+                            member.LastCapped = capActivity.RuneMetricsStringDateToObject();
+                        }
+                        var mostRecentActivityDate = sortedActivites.First().RuneMetricsStringDateToObject();
                         member.MostRecentRuneMetricsEvent = mostRecentActivityDate;
                     }
                 }
