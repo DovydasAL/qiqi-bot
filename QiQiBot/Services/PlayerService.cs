@@ -29,11 +29,11 @@ namespace QiQiBot.Services
                         member.LastScrapedRuneMetricsProfile = profile.ScrapedDate;
                         if (!string.IsNullOrEmpty(profile.Error))
                         {
-                            if (profile.Error == "PROFILE_PRIVATE")
+                            if (profile.Error == "PROFILE_PRIVATE" && member.PrivateRuneMetricsProfile == false)
                             {
                                 member.PrivateRuneMetricsProfile = true;
                             }
-                            if (profile.Error == "NO_PROFILE")
+                            if (profile.Error == "NO_PROFILE" && member.PrivateRuneMetricsProfile == false)
                             {
                                 member.InvalidRuneMetricsProfile = true;
                             }
@@ -41,12 +41,15 @@ namespace QiQiBot.Services
                         }
                         var sortedActivites = profile.Activities.OrderByDescending(x => x.RuneMetricsStringDateToObject()).ToList();
                         var capActivity = sortedActivites.FirstOrDefault(x => Regex.IsMatch(x.Text.ToLower(), @".*capped at my clan citadel.*"));
-                        if (capActivity != null)
+                        if (capActivity != null && (member.LastCapped == null || capActivity.RuneMetricsStringDateToObject() > member.LastCapped))
                         {
                             member.LastCapped = capActivity.RuneMetricsStringDateToObject();
                         }
                         var mostRecentActivityDate = sortedActivites.First().RuneMetricsStringDateToObject();
-                        member.MostRecentRuneMetricsEvent = mostRecentActivityDate;
+                        if (member.MostRecentRuneMetricsEvent == null || mostRecentActivityDate > member.MostRecentRuneMetricsEvent)
+                        {
+                            member.MostRecentRuneMetricsEvent = mostRecentActivityDate;
+                        }
                     }
                 }
                 catch (Exception ex)
