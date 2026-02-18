@@ -1,5 +1,4 @@
-﻿using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using QiQiBot.Exceptions;
@@ -7,8 +6,6 @@ using QiQiBot.Models;
 using QiQiBot.Services;
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
-using static QiQiBot.Models.RuneMetricsProfileDTO;
 
 namespace QiQiBot.HostedServices;
 
@@ -67,11 +64,8 @@ public sealed class PlayerScrapeService : BackgroundService
                     _logger.LogInformation("Checking {Count} player feeds.", players.Count);
 
                     var profiles = await ScrapePlayersAsync(players, stoppingToken);
-                    var achievements = await GetAchievementsToSend(playerService, profiles, stoppingToken);
-                    var discordClient = scope.ServiceProvider.GetRequiredService<DiscordSocketClient>();
-                    var clanService = scope.ServiceProvider.GetRequiredService<IClanService>();
-                    var clans = await clanService.GetClans();
-                    await SendAchievements(discordClient, clans, achievements);
+                    var achievementService = scope.ServiceProvider.GetRequiredService<IAchievementService>();
+                    await achievementService.ProcessAchievementsAsync(profiles, stoppingToken);
                     await playerService.UpdatePlayersFromRuneMetrics(
                         players.Select(x => x.Name).ToList(),
                         profiles);
@@ -93,128 +87,6 @@ public sealed class PlayerScrapeService : BackgroundService
         while (await timer.WaitForNextTickAsync(stoppingToken));
 
         _logger.LogInformation("PlayerScrapeService stopped.");
-    }
-
-    private async Task SendAchievements(
-        DiscordSocketClient discordClient,
-        List<Clan> clans,
-        Dictionary<Player, List<RuneMetricsActivityDTO>> achievements)
-    {
-        var groupingByClan = achievements.GroupBy(x => x.Key.ClanId);
-        var clanDict = clans.ToDictionary(x => x.Id, x => x);
-        foreach (var group in groupingByClan)
-        {
-            var clanId = group.Key;
-            if (clanId == null || !clanDict.ContainsKey(clanId.Value))
-            {
-                _logger.LogWarning("Player {Player} has unknown clan ID {ClanId}, skipping achievements.",
-                    group.First().Key.Name, clanId);
-                continue;
-            }
-
-            var clan = clanDict[clanId.Value];
-            var clanAchievements = group.ToDictionary(x => x.Key, x => x.Value);
-            var sb = new StringBuilder();
-            foreach (var kvp in clanAchievements)
-            {
-                var player = kvp.Key;
-                var activities = kvp.Value.OrderBy(x => x.RuneMetricsStringDateToObject());
-                foreach (var activity in activities)
-                {
-                    string prefix = "";
-                    if (ShouldFilterActivity(activity))
-                    {
-                        prefix = "[To Be Filtered] ";
-                    }
-                    var message = $"{prefix}{activity.RuneMetricsStringDateToObject().ToString("g")}: {player.Name}: {activity.Details}";
-                    sb.AppendLine(message);
-                }
-            }
-
-            foreach (var guild in clan.Guilds)
-            {
-                if (guild.AchievementsChannelId == null)
-                {
-                    _logger.LogWarning("Guild {GuildId} for clan {ClanName} does not have an achievements channel configured, skipping.",
-                        guild.Id, clan.Name);
-                    continue;
-                }
-
-                var discordGuild = discordClient.GetGuild(guild.GuildId);
-                if (discordGuild == null)
-                {
-                    _logger.LogWarning("Discord guild {GuildId} not found for clan {ClanName}, skipping.",
-                        guild.GuildId, clan.Name);
-                    continue;
-                }
-
-                var channel = discordGuild.GetTextChannel(guild.AchievementsChannelId.Value);
-                if (channel == null)
-                {
-                    _logger.LogWarning("Achievements channel {ChannelId} for guild {GuildId} not found, skipping.",
-                        guild.AchievementsChannelId.Value, guild.Id);
-                    continue;
-                }
-                await channel.SendMessageAsync(sb.ToString());
-            }
-        }
-    }
-
-    private static readonly string[] FILTER_ACTIVITY_TEXT_REGEXPS = new[]
-    {
-        @".*(?!200000000(?:\D|$))\d+XP.*",
-        @".*songs unlocked.*",
-        @".*Quest complete.*",
-        @".*Clan Fealty.*",
-        @".*Visited my Clan Citadel.*",
-        @".*crystal triskelion fragment.*",
-        @".*abyssal whip.*",
-        @".*dragon helm.*",
-        @".*shield left half.*",
-        @".*archaeological mystery.*",
-        @".*songs unlocked.*",
-        @".*killed.*",
-        @".*defeated.*",
-    };
-    private bool ShouldFilterActivity(RuneMetricsActivityDTO activity)
-    {
-        return FILTER_ACTIVITY_TEXT_REGEXPS.Any(r => Regex.IsMatch(activity.Text.ToLower(), r.ToLower()));
-    }
-
-    private async Task<Dictionary<Player, List<RuneMetricsActivityDTO>>> GetAchievementsToSend(
-        IPlayerService playerService,
-        List<RuneMetricsProfileDTO> profiles,
-        CancellationToken cancellationToken)
-    {
-        var filteredProfiles = profiles.Where(x => string.IsNullOrEmpty(x.Error)).ToList();
-        var players = await playerService.GetPlayersByNames(filteredProfiles.Select(x => x.Name).ToList());
-        var result = new Dictionary<Player, List<RuneMetricsActivityDTO>>();
-        var profileDict = filteredProfiles.ToDictionary(x => x.Name, x => x);
-        foreach (var player in players)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            try
-            {
-                if (player.MostRecentRuneMetricsEvent == null)
-                {
-                    _logger.LogInformation("Player {Name} does not have a recorded most recent RuneMetrics event, skipping achievement check.",
-                        player.Name);
-                    continue;
-                }
-                var profile = profileDict[player.Name];
-                var activities = profile.Activities;
-                var newActivities = activities.Where(x => x.RuneMetricsStringDateToObject() > player.MostRecentRuneMetricsEvent).ToList();
-                if (newActivities.Count > 0)
-                {
-                    result[player] = newActivities;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting achievement updates for player {Name}", player.Name);
-            }
-        }
-        return result;
     }
 
     private async Task<List<RuneMetricsProfileDTO>> ScrapePlayersAsync(
