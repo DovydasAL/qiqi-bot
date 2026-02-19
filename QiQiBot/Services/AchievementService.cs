@@ -32,7 +32,6 @@ namespace QiQiBot.Services
             @".*songs unlocked.*",
             @".*killed.*",
             @".*defeated.*",
-            @".*I am now level (?!99\b|110\b|120\b)\d+.*",
         };
 
         private static readonly string[] FilterActivityDetailRegexStrings = new[]
