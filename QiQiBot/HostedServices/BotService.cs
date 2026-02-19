@@ -74,6 +74,7 @@ internal sealed class BotService : IHostedService, IAsyncDisposable
             ClanSetAchievementChannel.BuildCommand(),
             ClanSetCitadelResetCommand.BuildCommand(),
             ClanCappedCommand.BuildCommand(),
+            ClanSetLeaveJoinChannel.BuildCommand(),
         };
 
         try
@@ -111,6 +112,8 @@ internal sealed class BotService : IHostedService, IAsyncDisposable
                 => scope.ServiceProvider.GetRequiredService<ClanSetCitadelResetCommand>(),
             var name when name == ClanCappedCommand.Name
                 => scope.ServiceProvider.GetRequiredService<ClanCappedCommand>(),
+            var name when name == ClanSetLeaveJoinChannel.Name
+                => scope.ServiceProvider.GetRequiredService<ClanSetLeaveJoinChannel>(),
             _ => null
         };
 

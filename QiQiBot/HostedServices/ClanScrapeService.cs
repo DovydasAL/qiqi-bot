@@ -42,13 +42,13 @@ public sealed class ClanScrapeService : BackgroundService
             {
                 using var scope = _serviceProvider.CreateScope();
                 var clanService = scope.ServiceProvider.GetRequiredService<IClanService>();
-
+                var clanEventService = scope.ServiceProvider.GetRequiredService<IClanEventService>();
                 _logger.LogInformation("Starting clan scrape cycle.");
 
                 var clans = await clanService.GetClans();
                 _logger.LogInformation("Found {Count} clans.", clans.Count);
 
-                await ScrapeClansAsync(clanService, clans, stoppingToken);
+                await ScrapeClansAsync(clanService, clanEventService, clans, stoppingToken);
 
                 _logger.LogInformation("Finished clan scrape cycle.");
             }
@@ -69,6 +69,7 @@ public sealed class ClanScrapeService : BackgroundService
 
     private async Task ScrapeClansAsync(
         IClanService clanService,
+        IClanEventService clanEventService,
         List<Clan> clans,
         CancellationToken cancellationToken)
     {
@@ -86,6 +87,38 @@ public sealed class ClanScrapeService : BackgroundService
                 {
                     member.ClanId = clan.Id;
                 }
+                // TODO: extract this logic to a separate service that computes player leave and joins
+                var dbMembersSet = (await clanService.GetClanMembers(clan.Id)).Select(x => x.Name).ToHashSet();
+                var apiMemberSet = members.Select(x => x.Name).ToHashSet();
+                var playersJoined = new List<string>();
+                var playersLeft = new List<string>();
+                foreach (var member in dbMembersSet)
+                {
+                    if (!apiMemberSet.Contains(member))
+                    {
+                        playersLeft.Add(member);
+                    }
+                }
+                foreach (var member in apiMemberSet)
+                {
+                    if (!dbMembersSet.Contains(member))
+                    {
+                        playersJoined.Add(member);
+                    }
+                }
+
+                foreach (var guild in clan.Guilds)
+                {
+                    if (playersJoined.Count > 0)
+                    {
+                        await clanEventService.SendPlayerJoinEvent(guild.GuildId, playersJoined);
+                    }
+                    if (playersLeft.Count > 0)
+                    {
+                        await clanEventService.SendPlayerLeftEvent(guild.GuildId, playersLeft);
+                    }
+                }
+
 
                 _logger.LogInformation("Retrieved {Count} members for clan {ClanName}.",
                     members.Count, clan.Name);
