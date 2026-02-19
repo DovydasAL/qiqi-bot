@@ -6,6 +6,7 @@ namespace QiQiBot.Services
     {
         Task RegisterClan(string clanName, ulong guildId);
         Task SetAchievementChannel(ulong guildId, ulong? channelId);
+        Task SetLeaveJoinChannel(ulong guildId, ulong? channelId);
         Task<List<Clan>> GetClans();
         Task<Clan> GetClanAsync(ulong guildId);
         Task<List<Player>> GetClanMembers(long clanId);

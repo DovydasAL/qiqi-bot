@@ -34,7 +34,7 @@ namespace QiQiBot.BotCommands
             }
 
             var channel = (SocketChannel)command.Data.Options.First().Value;
-            await _clanService.SetAchievementChannel(command.GuildId.Value, channel?.Id);
+            await _clanService.SetLeaveJoinChannel(command.GuildId.Value, channel?.Id);
             await command.RespondAsync($"Channel for leave and join events has been set.");
         }
     }
