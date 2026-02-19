@@ -26,6 +26,8 @@ namespace QiQiBot.Services
             @".*abyssal whip.*",
             @".*dragon helm.*",
             @".*shield left half.*",
+            @".*dragon boots.*",
+            @".*dragon hatchet.*",
             @".*archaeological mystery.*",
             @".*songs unlocked.*",
             @".*killed.*",
