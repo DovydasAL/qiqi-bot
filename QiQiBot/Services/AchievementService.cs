@@ -21,6 +21,7 @@ namespace QiQiBot.Services
             @".*Quest complete.*",
             @".*Clan Fealty.*",
             @".*Visited my Clan Citadel.*",
+            @".*capped at my clan citadel.*",
             @".*crystal triskelion fragment.*",
             @".*abyssal whip.*",
             @".*dragon helm.*",
@@ -29,9 +30,19 @@ namespace QiQiBot.Services
             @".*songs unlocked.*",
             @".*killed.*",
             @".*defeated.*",
+            @".*I am now level (?!99\b|110\b|120\b)\d+.*",
         };
 
-        private static readonly Regex[] FilterActivityRegexes = FilterActivityTextRegexStrings
+        private static readonly string[] FilterActivityDetailRegexStrings = new[]
+        {
+            @".*am now level (?!99\b|110\b|120\b)\d+.*",
+        };
+
+        private static readonly Regex[] FilterActivityTextRegexes = FilterActivityTextRegexStrings
+            .Select(pattern => new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase))
+            .ToArray();
+
+        private static readonly Regex[] FilterActivityDetailRegexes = FilterActivityDetailRegexStrings
             .Select(pattern => new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase))
             .ToArray();
 
@@ -203,7 +214,7 @@ namespace QiQiBot.Services
                 return false;
             }
 
-            return FilterActivityRegexes.Any(regex => regex.IsMatch(activity.Text));
+            return FilterActivityTextRegexes.Any(regex => regex.IsMatch(activity.Text)) || FilterActivityDetailRegexes.Any(regex => regex.IsMatch(activity.Details));
         }
     }
 }
