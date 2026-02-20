@@ -15,7 +15,7 @@ public sealed class ClanScrapeService : BackgroundService
     private readonly ILogger<ClanScrapeService> _logger;
 
     // scrape interval for all clans
-    private static readonly TimeSpan GlobalInterval = TimeSpan.FromHours(2);
+    private static readonly TimeSpan GlobalInterval = TimeSpan.FromMinutes(15);
     // delay between individual clans to avoid hammering API
     private static readonly TimeSpan PerClanDelay = TimeSpan.FromMinutes(2);
 
@@ -96,6 +96,7 @@ public sealed class ClanScrapeService : BackgroundService
                 {
                     if (!apiMemberSet.Contains(member))
                     {
+                        _logger.LogInformation("Player {PlayerName} left clan {ClanName}.", member, clan.Name);
                         playersLeft.Add(member);
                     }
                 }
@@ -103,6 +104,7 @@ public sealed class ClanScrapeService : BackgroundService
                 {
                     if (!dbMembersSet.Contains(member))
                     {
+                        _logger.LogInformation("Player {PlayerName} joined clan {ClanName}.", member, clan.Name);
                         playersJoined.Add(member);
                     }
                 }
