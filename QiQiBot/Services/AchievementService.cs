@@ -47,6 +47,8 @@ namespace QiQiBot.Services
             .Select(pattern => new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase))
             .ToArray();
 
+        private const int MaxAchievementsPerMessage = 10;
+
         public AchievementService(
             IPlayerService playerService,
             IClanService clanService,
@@ -152,7 +154,7 @@ namespace QiQiBot.Services
                     continue;
                 }
 
-                var sb = new StringBuilder();
+                var activityMessages = new List<string>();
                 foreach (var kvp in group)
                 {
                     var player = kvp.Key;
@@ -161,14 +163,19 @@ namespace QiQiBot.Services
                     {
                         var prefix = ShouldFilterActivity(activity) ? "[To Be Filtered] " : string.Empty;
                         var message = $"{prefix}{activity.RuneMetricsStringDateToObject():g}: {player.Name}: {activity.Details}";
-                        sb.AppendLine(message);
+                        activityMessages.Add(message);
                     }
                 }
 
-                if (sb.Length == 0)
+                if (activityMessages.Count == 0)
                 {
                     continue;
                 }
+
+                var messageBatches = activityMessages
+                    .Chunk(MaxAchievementsPerMessage)
+                    .Select(batch => string.Join(Environment.NewLine, batch))
+                    .ToList();
 
                 foreach (var guild in clan.Guilds)
                 {
@@ -203,7 +210,11 @@ namespace QiQiBot.Services
                         continue;
                     }
 
-                    await channel.SendMessageAsync(sb.ToString());
+                    foreach (var batch in messageBatches)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        await channel.SendMessageAsync(batch);
+                    }
                 }
             }
         }
