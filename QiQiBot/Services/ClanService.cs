@@ -108,28 +108,32 @@ namespace QiQiBot.Services
             var updateDate = DateTime.UtcNow;
             var existingMembers = await GetClanMembers(clanId);
             var existingMemberDictionary = existingMembers.ToDictionary(m => m.Name, m => m);
+            var knownMembersByName = await _dbContext.Players.Where(p => members.Select(x => x.Name).Contains(p.Name)).ToDictionaryAsync(p => p.Name, p => p);
             var totalNew = 0;
             var totalUpdated = 0;
             var totalDeleted = 0;
             foreach (var member in members)
             {
+                // This member is in the clan in the database, and in the API
                 if (existingMemberDictionary.TryGetValue(member.Name, out var existingMember))
                 {
-                    // If a player switches clans, reset their experience to what we found
-                    if (member.ClanId != existingMember.ClanId)
-                    {
-                        existingMember.ClanId = member.ClanId;
-                        existingMember.ClanExperience = member.ClanExperience;
-                        totalNew++;
-                    }
                     // If the player is in the same clan but has more experience, update it
-                    else if (member.ClanExperience > existingMember.ClanExperience)
+                    if (member.ClanExperience > existingMember.ClanExperience)
                     {
                         existingMember.ClanExperience = member.ClanExperience;
                         existingMember.LastClanExperienceUpdate = updateDate;
                         totalUpdated++;
                     }
                 }
+                // This member is in the clan in the API, but not in the database
+                else if (knownMembersByName.TryGetValue(member.Name, out var knownMember))
+                {
+                    knownMember.ClanId = clanId;
+                    knownMember.ClanExperience = member.ClanExperience;
+                    knownMember.LastClanExperienceUpdate = updateDate;
+                    totalNew++;
+                }
+                // This member is not in the database at all
                 else
                 {
                     _dbContext.Players.Add(member);
