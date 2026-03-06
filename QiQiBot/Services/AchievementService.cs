@@ -27,8 +27,12 @@ namespace QiQiBot.Services
             @".*shield left half.*",
             @".*dragon boots.*",
             @".*dragon hatchet.*",
+            @".*dragon platelegs.*",
+            @".*ancient effigy.*",
+            @".*looted a book.*",
             @".*archaeological mystery.*",
             @".*songs unlocked.*",
+            @".*charm sprites.*",
             @".*killed.*",
             @".*defeated.*",
         };
