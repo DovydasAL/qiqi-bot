@@ -7,6 +7,7 @@ namespace QiQiBot.Models
         public DbSet<Player> Players { get; set; }
         public DbSet<Clan> Clans { get; set; }
         public DbSet<Guild> Guilds { get; set; }
+        public DbSet<GuildUserRsn> GuildUserRsns { get; set; }
 
         public ClanContext(DbContextOptions<ClanContext> options) : base(options) { }
 

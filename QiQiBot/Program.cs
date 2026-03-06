@@ -35,6 +35,7 @@ namespace QiQiBot
             builder.Services.AddScoped<IPlayerService, PlayerService>();
             builder.Services.AddScoped<IClanEventService, ClanEventService>();
             builder.Services.AddScoped<IAchievementService, AchievementService>();
+            builder.Services.AddScoped<IRsnService, RsnService>();
             builder.Services.AddScoped<ClanActivityCommand>();
             builder.Services.AddScoped<ClanRegisterCommand>();
             builder.Services.AddScoped<ClanSetAchievementChannel>();
@@ -42,6 +43,7 @@ namespace QiQiBot
             builder.Services.AddScoped<ClanCappedCommand>();
             builder.Services.AddScoped<ClanSetLeaveJoinChannel>();
             builder.Services.AddScoped<ClanDebugCommand>();
+            builder.Services.AddScoped<RsnCommand>();
             builder.Services.AddHttpClient();
             builder.Services.AddDbContextPool<ClanContext>(opt =>
             {

@@ -76,6 +76,7 @@ internal sealed class BotService : IHostedService, IAsyncDisposable
             ClanCappedCommand.BuildCommand(),
             ClanSetLeaveJoinChannel.BuildCommand(),
             ClanDebugCommand.BuildCommand(),
+            RsnCommand.BuildCommand(),
         };
 
         try
@@ -117,6 +118,8 @@ internal sealed class BotService : IHostedService, IAsyncDisposable
                 => scope.ServiceProvider.GetRequiredService<ClanSetLeaveJoinChannel>(),
             var name when name == ClanDebugCommand.Name
                 => scope.ServiceProvider.GetRequiredService<ClanDebugCommand>(),
+            var name when name == RsnCommand.Name
+                => scope.ServiceProvider.GetRequiredService<RsnCommand>(),
             _ => null
         };
 
