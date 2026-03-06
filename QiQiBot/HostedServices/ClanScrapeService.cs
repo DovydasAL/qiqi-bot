@@ -15,9 +15,9 @@ public sealed class ClanScrapeService : BackgroundService
     private readonly ILogger<ClanScrapeService> _logger;
 
     // scrape interval for all clans
-    private static readonly TimeSpan GlobalInterval = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan GlobalInterval = TimeSpan.FromMinutes(5);
     // delay between individual clans to avoid hammering API
-    private static readonly TimeSpan PerClanDelay = TimeSpan.FromMinutes(2);
+    private static readonly TimeSpan PerClanDelay = TimeSpan.FromSeconds(30);
 
     public ClanScrapeService(
         IServiceProvider serviceProvider,
