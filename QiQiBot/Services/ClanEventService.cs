@@ -1,6 +1,6 @@
 ﻿using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
-using System.Text;
+using System.Linq;
 
 namespace QiQiBot.Services
 {
@@ -9,6 +9,7 @@ namespace QiQiBot.Services
         private readonly DiscordSocketClient _client;
         private readonly IClanService _clanService;
         private readonly ILogger<IClanEventService> _logger;
+        private const int MaxLinesPerNotification = 20;
         public ClanEventService(DiscordSocketClient client, IClanService clanService, ILogger<IClanEventService> logger)
         {
             _client = client;
@@ -24,12 +25,14 @@ namespace QiQiBot.Services
                 _logger.LogTrace($"Guild {guildId} does not have a clan join/leave channel set, skipping player join event.");
                 return;
             }
-            var sb = new StringBuilder();
-            foreach (var player in playerNames)
+            var notificationBatches = playerNames
+                .Select(player => $"**{player}** has joined the clan!")
+                .Chunk(MaxLinesPerNotification)
+                .Select(batch => string.Join(Environment.NewLine, batch));
+            foreach (var batch in notificationBatches)
             {
-                sb.AppendLine($"**{player}** has joined the clan!");
+                await SendNotification(batch, guildId, dbGuild.ClanLeaveJoinChannelId.Value);
             }
-            await SendNotification(sb.ToString(), guildId, dbGuild.ClanLeaveJoinChannelId.Value);
         }
 
         public async Task SendPlayerLeftEvent(ulong guildId, List<string> playerNames)
@@ -40,12 +43,14 @@ namespace QiQiBot.Services
                 _logger.LogTrace($"Guild {guildId} does not have a clan join/leave channel set, skipping player left event.");
                 return;
             }
-            var sb = new StringBuilder();
-            foreach (var player in playerNames)
+            var notificationBatches = playerNames
+                .Select(player => $"**{player}** is no longer in the clan")
+                .Chunk(MaxLinesPerNotification)
+                .Select(batch => string.Join(Environment.NewLine, batch));
+            foreach (var batch in notificationBatches)
             {
-                sb.AppendLine($"**{player}** is no longer in the clan");
+                await SendNotification(batch, guildId, dbGuild.ClanLeaveJoinChannelId.Value);
             }
-            await SendNotification(sb.ToString(), guildId, dbGuild.ClanLeaveJoinChannelId.Value);
         }
 
         private async Task SendNotification(string message, ulong guildId, ulong channelId)

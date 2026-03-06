@@ -1,7 +1,6 @@
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using QiQiBot.Models;
-using System.Text;
 using System.Text.RegularExpressions;
 using static QiQiBot.Models.RuneMetricsProfileDTO;
 
