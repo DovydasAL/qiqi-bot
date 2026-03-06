@@ -42,7 +42,7 @@ internal class RsnCommand(IRsnService rsnService, DiscordSocketClient client) : 
 
         if (previousName is null)
         {
-            await command.RespondAsync($"Your RuneScape name has been set to {providedName}. Your discord nickname has also been changed for this server.");
+            await command.RespondAsync($"Your RuneScape name has been set to {providedName}. Your Discord nickname has also been changed for this server.");
         }
         else if (previousName.Equals(providedName, StringComparison.Ordinal))
         {
@@ -50,7 +50,7 @@ internal class RsnCommand(IRsnService rsnService, DiscordSocketClient client) : 
         }
         else
         {
-            await command.RespondAsync($"Updated your RuneScape name from {previousName} to {providedName}. Your discord nickname has also been changed for this server.");
+            await command.RespondAsync($"Updated your RuneScape name from {previousName} to {providedName}. Your Discord nickname has also been changed for this server.");
         }
         var guild = _client.GetGuild(guildId);
         var guildUser = guild.GetUser(userId);
