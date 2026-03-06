@@ -47,6 +47,7 @@ namespace QiQiBot.Services
             .ToArray();
 
         private const int MaxAchievementsPerMessage = 10;
+        private sealed record AchievementMessage(string Text, bool IsFiltered);
 
         public AchievementService(
             IPlayerService playerService,
@@ -153,16 +154,16 @@ namespace QiQiBot.Services
                     continue;
                 }
 
-                var activityMessages = new List<string>();
+                var activityMessages = new List<AchievementMessage>();
                 foreach (var kvp in group)
                 {
                     var player = kvp.Key;
                     var activities = kvp.Value.OrderBy(x => x.RuneMetricsStringDateToObject());
                     foreach (var activity in activities)
                     {
-                        var prefix = ShouldFilterActivity(activity) ? "[To Be Filtered] " : string.Empty;
-                        var message = $"{prefix}{activity.RuneMetricsStringDateToObject():g}: {player.Name}: {activity.Details}";
-                        activityMessages.Add(message);
+                        var isFiltered = ShouldFilterActivity(activity);
+                        var message = $"{activity.RuneMetricsStringDateToObject():g}: {player.Name}: {activity.Details}";
+                        activityMessages.Add(new AchievementMessage(message, isFiltered));
                     }
                 }
 
@@ -170,11 +171,6 @@ namespace QiQiBot.Services
                 {
                     continue;
                 }
-
-                var messageBatches = activityMessages
-                    .Chunk(MaxAchievementsPerMessage)
-                    .Select(batch => string.Join(Environment.NewLine, batch))
-                    .ToList();
 
                 foreach (var guild in clan.Guilds)
                 {
@@ -208,6 +204,34 @@ namespace QiQiBot.Services
                             guild.Id);
                         continue;
                     }
+
+                    var guildMessages = new List<string>();
+                    foreach (var achievement in activityMessages)
+                    {
+                        if (achievement.IsFiltered)
+                        {
+                            if (!guild.DebugModeEnabled)
+                            {
+                                continue;
+                            }
+
+                            guildMessages.Add($"[Filtered] {achievement.Text}");
+                        }
+                        else
+                        {
+                            guildMessages.Add(achievement.Text);
+                        }
+                    }
+
+                    if (guildMessages.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    var messageBatches = guildMessages
+                        .Chunk(MaxAchievementsPerMessage)
+                        .Select(batch => string.Join(Environment.NewLine, batch))
+                        .ToList();
 
                     foreach (var batch in messageBatches)
                     {

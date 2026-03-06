@@ -182,6 +182,18 @@ namespace QiQiBot.Services
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task SetDebugMode(ulong guildId, bool enabled)
+        {
+            var guild = await _dbContext.Guilds.FirstOrDefaultAsync(x => x.GuildId == guildId);
+            if (guild == null)
+            {
+                throw new Exception($"No guild found with guildId {guildId}");
+            }
+
+            guild.DebugModeEnabled = enabled;
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task<Guild> GetGuild(ulong guildId)
         {
             var guild = await _dbContext.Guilds.Include(x => x.Clan).FirstOrDefaultAsync(x => x.GuildId == guildId);

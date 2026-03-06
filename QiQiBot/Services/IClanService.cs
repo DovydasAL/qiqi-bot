@@ -13,6 +13,7 @@ namespace QiQiBot.Services
         Task UpdateClanMembers(long clanId, List<Player> members);
         Task SetLastScraped(long clanId, DateTime date);
         Task SetCitadelResetTime(ulong guildId, long day, string time);
+        Task SetDebugMode(ulong guildId, bool enabled);
         Task<Guild> GetGuild(ulong guildId);
     }
 }
