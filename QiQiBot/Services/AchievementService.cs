@@ -166,7 +166,8 @@ namespace QiQiBot.Services
                     foreach (var activity in activities)
                     {
                         var isFiltered = ShouldFilterActivity(activity);
-                        var message = $"{activity.RuneMetricsStringDateToObject():g}: {player.Name}: {activity.Details}";
+                        var secondsSinceEpoch = activity.RuneMetricsStringDateToObject().Subtract(DateTime.UnixEpoch).TotalSeconds;
+                        var message = $"[<t:{secondsSinceEpoch}:f>] **{player.Name}**: {activity.Details}";
                         activityMessages.Add(new AchievementMessage(message, isFiltered));
                     }
                 }

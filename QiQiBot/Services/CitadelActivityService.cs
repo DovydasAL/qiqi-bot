@@ -173,10 +173,12 @@ namespace QiQiBot.Services
                     foreach (var evt in events)
                     {
                         var timestamp = evt.Activity.RuneMetricsStringDateToObject();
+                        var secondsSinceEpoch = timestamp.Subtract(DateTime.UnixEpoch).TotalSeconds;
+
                         var message = evt.Type switch
                         {
-                            CitadelEventType.Visited => $"{timestamp:g}: {player.Name} visited the clan citadel.",
-                            CitadelEventType.Capped => $"{timestamp:g}: {player.Name} capped at the clan citadel.",
+                            CitadelEventType.Visited => $"[<t:{secondsSinceEpoch}:f>] **{player.Name}** visited the clan citadel.",
+                            CitadelEventType.Capped => $"[<t:{secondsSinceEpoch}:f>] **{player.Name}** capped at the clan citadel.",
                             _ => null
                         };
 
