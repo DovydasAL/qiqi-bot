@@ -1,16 +1,16 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
 using QiQiBot.Services;
 
 namespace QiQiBot.BotCommands
 {
-    public class ClanSetAchievementChannel : IBotCommand
+    public class ClanSetCitadelChannel : IBotCommand
     {
-        public static string Name => "clan-achievement-channel";
+        public static string Name => "clan-citadel-channel";
 
-        private IClanService _clanService;
+        private readonly IClanService _clanService;
 
-        public ClanSetAchievementChannel(IClanService clanService)
+        public ClanSetCitadelChannel(IClanService clanService)
         {
             _clanService = clanService;
         }
@@ -19,9 +19,9 @@ namespace QiQiBot.BotCommands
         {
             var command = new SlashCommandBuilder();
             command.WithName(Name);
-            command.WithDescription("Set the channel to post member achievements");
+            command.WithDescription("Set the channel to post citadel visit/cap notifications");
             command.WithDefaultMemberPermissions(GuildPermission.Administrator);
-            command.AddOption("channel", ApplicationCommandOptionType.Channel, "The channel to post achievements", isRequired: false);
+            command.AddOption("channel", ApplicationCommandOptionType.Channel, "The channel to post citadel notifications", isRequired: false);
             return command.Build();
         }
 
@@ -36,12 +36,11 @@ namespace QiQiBot.BotCommands
             var channelOption = command.Data.Options.FirstOrDefault();
             var channel = channelOption?.Value as SocketChannel;
 
-            await _clanService.SetAchievementChannel(command.GuildId.Value, channel?.Id);
+            await _clanService.SetCitadelChannel(command.GuildId.Value, channel?.Id);
             var response = channel == null
-                ? "Channel for achievements has been cleared."
-                : "Channel for achievements has been set.";
+                ? "Channel for citadel notifications has been cleared."
+                : "Channel for citadel notifications has been set.";
             await command.RespondAsync(response);
         }
-
     }
 }

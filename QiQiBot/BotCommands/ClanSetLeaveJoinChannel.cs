@@ -33,9 +33,14 @@ namespace QiQiBot.BotCommands
                 return;
             }
 
-            var channel = (SocketChannel)command.Data.Options.First().Value;
+            var channelOption = command.Data.Options.FirstOrDefault();
+            var channel = channelOption?.Value as SocketChannel;
+
             await _clanService.SetLeaveJoinChannel(command.GuildId.Value, channel?.Id);
-            await command.RespondAsync($"Channel for leave and join events has been set.");
+            var response = channel == null
+                ? "Channel for leave and join events has been cleared."
+                : "Channel for leave and join events has been set.";
+            await command.RespondAsync(response);
         }
     }
 }

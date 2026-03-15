@@ -49,6 +49,7 @@ public sealed class PlayerScrapeService : BackgroundService
             {
                 using var scope = _serviceProvider.CreateScope();
                 var playerService = scope.ServiceProvider.GetRequiredService<IPlayerService>();
+                var citadelActivityService = scope.ServiceProvider.GetRequiredService<ICitadelActivityService>();
 
                 _logger.LogInformation("Starting player scrape cycle.");
 
@@ -64,6 +65,7 @@ public sealed class PlayerScrapeService : BackgroundService
                     _logger.LogInformation("Checking {Count} player feeds.", players.Count);
 
                     var profiles = await ScrapePlayersAsync(players, stoppingToken);
+                    await citadelActivityService.ProcessCitadelActivitiesAsync(profiles, stoppingToken);
                     var achievementService = scope.ServiceProvider.GetRequiredService<IAchievementService>();
                     await achievementService.ProcessAchievementsAsync(profiles, stoppingToken);
                     await playerService.UpdatePlayersFromRuneMetrics(

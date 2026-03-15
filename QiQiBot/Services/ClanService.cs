@@ -83,6 +83,18 @@ namespace QiQiBot.Services
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task SetCitadelChannel(ulong guildId, ulong? channelId)
+        {
+            var guild = await _dbContext.Guilds.FirstOrDefaultAsync(x => x.GuildId == guildId);
+            if (guild == null)
+            {
+                throw new Exception($"No guild found with guildId {guildId}");
+            }
+
+            guild.ClanCitadelChannelId = channelId;
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task<Clan> GetClanAsync(ulong guildId)
         {
             var guild = await _dbContext.Guilds.Include(x => x.Clan).FirstOrDefaultAsync(x => x.GuildId == guildId);
