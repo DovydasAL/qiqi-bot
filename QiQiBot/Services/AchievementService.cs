@@ -43,12 +43,12 @@ namespace QiQiBot.Services
             @".*tetracompass.*",
             @".*fight kiln.*",
             @".*amulet of ranging.*",
-            @".*bandos (?:chestplate|tassets|boots|gloves|warshield|hilt).*",
-            @".*armadyl (?:chestplate|chainskirt|boots|gloves|buckler|crossbow|hilt).*",
+            @".*bandos (?:helmet|chestplate|tassets|gloves|boots|warshield|hilt).*",
+            @".*armadyl (?:helmet|chestplate|chainskirt|gloves|boots|buckler|crossbow|hilt).*",
             @".*saradomin (?:hilt|sword).*",
             @".*(?:whisper|murmur|hiss) of saradomin.*",
             @".*(?:zamorak hilt|zamorakian spear).*",
-            @".*(?:hood|garb|gown|boots|gloves|ward) of subjugation.*",
+            @".*(?:hood|garb|gown|gloves|boots|ward) of subjugation.*",
         };
 
         private static readonly string[] FilterActivityDetailRegexStrings = new[]
