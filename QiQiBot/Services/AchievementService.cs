@@ -35,11 +35,20 @@ namespace QiQiBot.Services
             @".*charm sprites.*",
             @".*killed.*",
             @".*defeated.*",
+            @".*dungeon floor \d+.*",
+            @".*granite maul.*",
+            @".*godsword shard.*",
+            @".*jaws of the abyss.*",
+            @".*demon slayer.*",
+            @".*tetracompass.*",
+            @".*fight kiln.*",
+            @".*amulet of ranging.*",
         };
 
         private static readonly string[] FilterActivityDetailRegexStrings = new[]
         {
             @".*am now level (?!99\b|110\b|120\b)\d+.*",
+            @".*at least level (?!(10|20|30|40|50|60|70|80|90|99|110|120)\b)\d+ in all skills.*",
         };
 
         private static readonly Regex[] FilterActivityTextRegexes = FilterActivityTextRegexStrings
