@@ -15,6 +15,7 @@ namespace QiQiBot.Services
 
         private static readonly string[] FilterActivityTextRegexStrings = new[]
         {
+            @".*QP milestone.*",
             @".*(?!200000000(?:\D|$))\d+XP.*",
             @".*songs unlocked.*",
             @".*Quest complete.*",
@@ -49,6 +50,8 @@ namespace QiQiBot.Services
             @".*(?:whisper|murmur|hiss) of saradomin.*",
             @".*(?:zamorak hilt|zamorakian spear).*",
             @".*(?:hood|garb|gown|gloves|boots|ward) of subjugation.*",
+            @".*silver spine.*",
+            @".*sanguine spine.*",
         };
 
         private static readonly string[] FilterActivityDetailRegexStrings = new[]
