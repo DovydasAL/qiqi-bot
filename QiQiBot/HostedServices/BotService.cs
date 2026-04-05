@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using QiQiBot.BotCommands;
+using QiQiBot.Exceptions;
 using QiQiBot.Services;
 
 namespace QiQiBot.HostedServices;
@@ -33,6 +34,7 @@ internal sealed class BotService : IHostedService, IAsyncDisposable
     {
         _client.Ready += OnClientReadyAsync;
         _client.SlashCommandExecuted += OnSlashCommandExecutedAsync;
+        _client.UserJoined += OnUserJoinedAsync;
         _client.Log += OnClientLogAsync;
 
         var token = _config.GetValue<string>("DiscordBotToken");
@@ -51,6 +53,7 @@ internal sealed class BotService : IHostedService, IAsyncDisposable
         // optional: detach handlers if you plan to reuse the client
         _client.Ready -= OnClientReadyAsync;
         _client.SlashCommandExecuted -= OnSlashCommandExecutedAsync;
+        _client.UserJoined -= OnUserJoinedAsync;
         _client.Log -= OnClientLogAsync;
 
         await _client.StopAsync();
@@ -149,6 +152,39 @@ internal sealed class BotService : IHostedService, IAsyncDisposable
                 await command.RespondAsync(
                     "Sorry, an unexpected error occurred while processing your command.");
             }
+        }
+    }
+
+    private async Task OnUserJoinedAsync(SocketGuildUser user)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var clanService = scope.ServiceProvider.GetRequiredService<IClanService>();
+
+        try
+        {
+            var dbGuild = await clanService.GetGuild(user.Guild.Id);
+            if (dbGuild.ClanWelcomeChannelId == null)
+            {
+                _logger.LogTrace("Guild {GuildId} does not have a welcome channel set, skipping welcome message.", user.Guild.Id);
+                return;
+            }
+
+            var channel = user.Guild.GetTextChannel(dbGuild.ClanWelcomeChannelId.Value);
+            if (channel == null)
+            {
+                _logger.LogWarning("Welcome channel {ChannelId} not found in guild {GuildId}, cannot send welcome message.", dbGuild.ClanWelcomeChannelId.Value, user.Guild.Id);
+                return;
+            }
+
+            await channel.SendMessageAsync($"Welcome {user.Mention}! Please set your Runescape Username so you can track achievements. You can use the command /rsn followed by a space and then your RuneScape Username.");
+        }
+        catch (NoClanRegisteredException)
+        {
+            _logger.LogTrace("Guild {GuildId} is not configured yet, skipping welcome message.", user.Guild.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unhandled exception while sending welcome message for guild {GuildId} and user {UserId}.", user.Guild.Id, user.Id);
         }
     }
 
