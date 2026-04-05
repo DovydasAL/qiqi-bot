@@ -44,6 +44,7 @@ namespace QiQiBot
             builder.Services.AddScoped<ClanSetCitadelResetCommand>();
             builder.Services.AddScoped<ClanCappedCommand>();
             builder.Services.AddScoped<ClanSetLeaveJoinChannel>();
+            builder.Services.AddScoped<ClanSetWelcomeChannel>();
             builder.Services.AddScoped<ClanDebugCommand>();
             builder.Services.AddScoped<RsnCommand>();
             builder.Services.AddHttpClient();

@@ -31,6 +31,9 @@ namespace QiQiBot.Models
         [Column("clan_leave_join_channel_id")]
         public ulong? ClanLeaveJoinChannelId { get; set; }
 
+        [Column("clan_welcome_channel_id")]
+        public ulong? ClanWelcomeChannelId { get; set; }
+
         [Column("debug_mode_enabled")]
         public bool DebugModeEnabled { get; set; }
 
