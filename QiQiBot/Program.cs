@@ -35,7 +35,7 @@ namespace QiQiBot
             {
                 var socketConfig = new DiscordSocketConfig
                 {
-                    GatewayIntents = GatewayIntents.AllUnprivileged,
+                    GatewayIntents = GatewayIntents.All,
                 };
                 return new DiscordSocketClient(socketConfig);
             });
