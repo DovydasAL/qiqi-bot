@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +31,14 @@ namespace QiQiBot
             builder.Services.AddHostedService<BotService>();
             builder.Services.AddHostedService<ClanScrapeService>();
             builder.Services.AddHostedService<PlayerScrapeService>();
-            builder.Services.AddSingleton<DiscordSocketClient>();
+            builder.Services.AddSingleton(sp =>
+            {
+                var socketConfig = new DiscordSocketConfig
+                {
+                    GatewayIntents = GatewayIntents.All,
+                };
+                return new DiscordSocketClient(socketConfig);
+            });
             builder.Services.AddScoped<IClanService, ClanService>();
             builder.Services.AddScoped<IPlayerService, PlayerService>();
             builder.Services.AddScoped<IClanEventService, ClanEventService>();
