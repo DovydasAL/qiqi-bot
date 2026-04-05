@@ -22,6 +22,14 @@ public class RsnService : IRsnService
         return record?.RuneScapeName;
     }
 
+    public async Task<Dictionary<ulong, string>> GetRsnsAsync(ulong guildId)
+    {
+        return await _context.GuildUserRsns
+            .AsNoTracking()
+            .Where(x => x.GuildId == guildId)
+            .ToDictionaryAsync(x => x.UserId, x => x.RuneScapeName);
+    }
+
     public async Task SetRsnAsync(ulong guildId, ulong userId, string runescapeName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(runescapeName);

@@ -4,4 +4,5 @@ public interface IRsnService
 {
     Task SetRsnAsync(ulong guildId, ulong userId, string runescapeName);
     Task<string?> GetRsnAsync(ulong guildId, ulong userId);
+    Task<Dictionary<ulong, string>> GetRsnsAsync(ulong guildId);
 }
