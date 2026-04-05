@@ -53,6 +53,26 @@ namespace QiQiBot.Services
             }
         }
 
+        public async Task SendPlayerRenameEvent(ulong guildId, List<(string OldName, string NewName)> renames)
+        {
+            var dbGuild = await _clanService.GetGuild(guildId);
+            if (dbGuild.ClanLeaveJoinChannelId == null)
+            {
+                _logger.LogTrace($"Guild {guildId} does not have a clan join/leave channel set, skipping player rename event.");
+                return;
+            }
+
+            var notificationBatches = renames
+                .Select(rename => $"**{rename.OldName}** has renamed to **{rename.NewName}**")
+                .Chunk(MaxLinesPerNotification)
+                .Select(batch => string.Join(Environment.NewLine, batch));
+
+            foreach (var batch in notificationBatches)
+            {
+                await SendNotification(batch, guildId, dbGuild.ClanLeaveJoinChannelId.Value);
+            }
+        }
+
         private async Task SendNotification(string message, ulong guildId, ulong channelId)
         {
 

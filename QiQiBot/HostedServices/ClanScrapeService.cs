@@ -18,6 +18,7 @@ public sealed class ClanScrapeService : BackgroundService
     private static readonly TimeSpan GlobalInterval = TimeSpan.FromMinutes(5);
     // delay between individual clans to avoid hammering API
     private static readonly TimeSpan PerClanDelay = TimeSpan.FromSeconds(30);
+    private const long RenameDetectionMinClanExperience = 100_000;
 
     public ClanScrapeService(
         IServiceProvider serviceProvider,
@@ -87,40 +88,93 @@ public sealed class ClanScrapeService : BackgroundService
                 {
                     member.ClanId = clan.Id;
                 }
-                // TODO: extract this logic to a separate service that computes player leave and joins
-                var dbMembersSet = (await clanService.GetClanMembers(clan.Id)).Select(x => x.Name).ToHashSet();
-                var apiMemberSet = members.Select(x => x.Name).ToHashSet();
+
+                var dbMembers = await clanService.GetClanMembers(clan.Id);
+                var dbMembersByName = dbMembers.ToDictionary(x => x.Name, x => x);
+                var apiMembersByName = members.ToDictionary(x => x.Name, x => x);
+
                 var playersJoined = new List<string>();
                 var playersLeft = new List<string>();
-                foreach (var member in dbMembersSet)
+                var playersRenamed = new List<(string OldName, string NewName)>();
+
+                var leftCandidates = new List<Player>();
+                var joinCandidates = new List<Player>();
+
+                foreach (var dbMember in dbMembers)
                 {
-                    if (!apiMemberSet.Contains(member))
+                    if (!apiMembersByName.ContainsKey(dbMember.Name))
                     {
-                        _logger.LogInformation("Player {PlayerName} left clan {ClanName}.", member, clan.Name);
-                        playersLeft.Add(member);
+                        playersLeft.Add(dbMember.Name);
+                        leftCandidates.Add(dbMember);
                     }
                 }
-                foreach (var member in apiMemberSet)
+
+                foreach (var apiMember in members)
                 {
-                    if (!dbMembersSet.Contains(member))
+                    if (!dbMembersByName.ContainsKey(apiMember.Name))
                     {
-                        _logger.LogInformation("Player {PlayerName} joined clan {ClanName}.", member, clan.Name);
-                        playersJoined.Add(member);
+                        playersJoined.Add(apiMember.Name);
+                        if (apiMember.ClanExperience > RenameDetectionMinClanExperience)
+                        {
+                            joinCandidates.Add(apiMember);
+                        }
                     }
+                }
+
+                var unmatchedLeft = leftCandidates.ToList();
+                foreach (var joinedCandidate in joinCandidates)
+                {
+                    if (unmatchedLeft.Count == 0)
+                    {
+                        break;
+                    }
+
+                    var closestLeft = unmatchedLeft
+                        .OrderBy(left => Math.Abs(left.ClanExperience - joinedCandidate.ClanExperience))
+                        .First();
+
+                    playersRenamed.Add((closestLeft.Name, joinedCandidate.Name));
+                    unmatchedLeft.Remove(closestLeft);
+
+                    playersLeft.Remove(closestLeft.Name);
+                    playersJoined.Remove(joinedCandidate.Name);
+
+                    _logger.LogInformation(
+                        "Detected likely rename in clan {ClanName}: {OldName} -> {NewName} (XP {OldXp} -> {NewXp}).",
+                        clan.Name,
+                        closestLeft.Name,
+                        joinedCandidate.Name,
+                        closestLeft.ClanExperience,
+                        joinedCandidate.ClanExperience);
+                }
+
+                foreach (var joined in playersJoined)
+                {
+                    _logger.LogInformation("Player {PlayerName} joined clan {ClanName}.", joined, clan.Name);
+                }
+
+                foreach (var left in playersLeft)
+                {
+                    _logger.LogInformation("Player {PlayerName} left clan {ClanName}.", left, clan.Name);
                 }
 
                 foreach (var guild in clan.Guilds)
                 {
+                    if (playersRenamed.Count > 0)
+                    {
+                        await clanEventService.SendPlayerRenameEvent(guild.GuildId, playersRenamed);
+                    }
+
                     if (playersJoined.Count > 0)
                     {
                         await clanEventService.SendPlayerJoinEvent(guild.GuildId, playersJoined);
                     }
+
                     if (playersLeft.Count > 0)
                     {
                         await clanEventService.SendPlayerLeftEvent(guild.GuildId, playersLeft);
                     }
                 }
-
 
                 _logger.LogInformation("Retrieved {Count} members for clan {ClanName}.",
                     members.Count, clan.Name);
