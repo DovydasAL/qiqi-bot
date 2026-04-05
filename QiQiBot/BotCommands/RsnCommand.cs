@@ -31,7 +31,7 @@ internal class RsnCommand(IRsnService rsnService, DiscordSocketClient client) : 
         var providedName = command.Data.Options.FirstOrDefault()?.Value?.ToString()?.Trim();
         if (string.IsNullOrWhiteSpace(providedName) || providedName.Length > 12)
         {
-            await command.RespondAsync("RuneScape names must be between 1 and 12 characters.");
+            await command.RespondAsync("RuneScape names must be between 1 and 12 characters.", ephemeral: true);
             return;
         }
 
@@ -42,15 +42,15 @@ internal class RsnCommand(IRsnService rsnService, DiscordSocketClient client) : 
 
         if (previousName is null)
         {
-            await command.RespondAsync($"Your RuneScape name has been set to {providedName}. Your Discord nickname has also been changed for this server.");
+            await command.RespondAsync($"Your RuneScape name has been set to {providedName}. Your Discord nickname has also been changed for this server.", ephemeral: true);
         }
         else if (previousName.Equals(providedName, StringComparison.Ordinal))
         {
-            await command.RespondAsync($"Your RuneScape name is already set to {providedName}.");
+            await command.RespondAsync($"Your RuneScape name is already set to {providedName}.", ephemeral: true);
         }
         else
         {
-            await command.RespondAsync($"Updated your RuneScape name from {previousName} to {providedName}. Your Discord nickname has also been changed for this server.");
+            await command.RespondAsync($"Updated your RuneScape name from {previousName} to {providedName}. Your Discord nickname has also been changed for this server.", ephemeral: true);
         }
         var guild = _client.GetGuild(guildId);
         var guildUser = guild.GetUser(userId);
