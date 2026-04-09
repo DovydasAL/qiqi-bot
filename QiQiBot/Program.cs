@@ -56,6 +56,7 @@ namespace QiQiBot
             builder.Services.AddScoped<ClanDebugCommand>();
             builder.Services.AddScoped<ClanRsnAuditCommand>();
             builder.Services.AddScoped<RsnCommand>();
+            builder.Services.AddScoped<RsnSetCommand>();
             builder.Services.AddHttpClient();
             builder.Services.AddDbContextPool<ClanContext>(opt =>
             {

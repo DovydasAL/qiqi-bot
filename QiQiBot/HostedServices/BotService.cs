@@ -83,6 +83,7 @@ internal sealed class BotService : IHostedService, IAsyncDisposable
             ClanDebugCommand.BuildCommand(),
             ClanRsnAuditCommand.BuildCommand(),
             RsnCommand.BuildCommand(),
+            RsnSetCommand.BuildCommand(),
         };
 
         try
@@ -132,6 +133,8 @@ internal sealed class BotService : IHostedService, IAsyncDisposable
                 => scope.ServiceProvider.GetRequiredService<ClanRsnAuditCommand>(),
             var name when name == RsnCommand.Name
                 => scope.ServiceProvider.GetRequiredService<RsnCommand>(),
+            var name when name == RsnSetCommand.Name
+                => scope.ServiceProvider.GetRequiredService<RsnSetCommand>(),
             _ => null
         };
 
