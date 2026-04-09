@@ -4,12 +4,12 @@ using QiQiBot.Services;
 
 namespace QiQiBot.BotCommands;
 
-internal class RsnCommand(IRsnService rsnService, DiscordSocketClient client) : IBotCommand
+internal class RsnCommand(IRsnService rsnService, IDiscordSocketClientWrapper client) : IBotCommand
 {
     public static string Name => "rsn";
 
     private readonly IRsnService _rsnService = rsnService;
-    private readonly DiscordSocketClient _client = client;
+    private readonly IDiscordSocketClientWrapper _client = client;
 
     public static ApplicationCommandProperties BuildCommand()
     {

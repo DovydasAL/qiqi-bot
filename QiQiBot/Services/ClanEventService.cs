@@ -1,16 +1,15 @@
-﻿using Discord.WebSocket;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System.Linq;
 
 namespace QiQiBot.Services
 {
     public class ClanEventService : IClanEventService
     {
-        private readonly DiscordSocketClient _client;
+        private readonly IDiscordSocketClientWrapper _client;
         private readonly IClanService _clanService;
         private readonly ILogger<IClanEventService> _logger;
         private const int MaxLinesPerNotification = 20;
-        public ClanEventService(DiscordSocketClient client, IClanService clanService, ILogger<IClanEventService> logger)
+        public ClanEventService(IDiscordSocketClientWrapper client, IClanService clanService, ILogger<IClanEventService> logger)
         {
             _client = client;
             _clanService = clanService;

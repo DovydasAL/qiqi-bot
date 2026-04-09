@@ -31,13 +31,15 @@ namespace QiQiBot
             builder.Services.AddHostedService<BotService>();
             builder.Services.AddHostedService<ClanScrapeService>();
             builder.Services.AddHostedService<PlayerScrapeService>();
-            builder.Services.AddSingleton(sp =>
+            builder.Services.AddSingleton<IDiscordSocketClientWrapper>(sp =>
             {
                 var socketConfig = new DiscordSocketConfig
                 {
                     GatewayIntents = GatewayIntents.All,
                 };
-                return new DiscordSocketClient(socketConfig);
+
+                var client = new DiscordSocketClient(socketConfig);
+                return new DiscordSocketClientWrapper(client);
             });
             builder.Services.AddScoped<IClanService, ClanService>();
             builder.Services.AddScoped<IPlayerService, PlayerService>();

@@ -10,7 +10,7 @@ namespace QiQiBot.Services
     {
         private readonly IPlayerService _playerService;
         private readonly IClanService _clanService;
-        private readonly DiscordSocketClient _discordClient;
+        private readonly IDiscordSocketClientWrapper _discordClient;
         private readonly ILogger<AchievementService> _logger;
 
         private static readonly string[] FilterActivityTextRegexStrings = new[]
@@ -74,7 +74,7 @@ namespace QiQiBot.Services
         public AchievementService(
             IPlayerService playerService,
             IClanService clanService,
-            DiscordSocketClient discordClient,
+            IDiscordSocketClientWrapper discordClient,
             ILogger<AchievementService> logger)
         {
             _playerService = playerService;

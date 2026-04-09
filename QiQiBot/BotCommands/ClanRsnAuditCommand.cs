@@ -6,13 +6,13 @@ using System.Text;
 
 namespace QiQiBot.BotCommands;
 
-internal class ClanRsnAuditCommand(IRsnService rsnService, IClanService clanService, DiscordSocketClient client) : IBotCommand
+internal class ClanRsnAuditCommand(IRsnService rsnService, IClanService clanService, IDiscordSocketClientWrapper client) : IBotCommand
 {
     public static string Name => "clan-rsn-audit";
 
     private readonly IRsnService _rsnService = rsnService;
     private readonly IClanService _clanService = clanService;
-    private readonly DiscordSocketClient _client = client;
+    private readonly IDiscordSocketClientWrapper _client = client;
 
     public static ApplicationCommandProperties BuildCommand()
     {

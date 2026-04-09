@@ -10,7 +10,7 @@ namespace QiQiBot.Services
     {
         private readonly IPlayerService _playerService;
         private readonly IClanService _clanService;
-        private readonly DiscordSocketClient _discordClient;
+        private readonly IDiscordSocketClientWrapper _discordClient;
         private readonly ILogger<CitadelActivityService> _logger;
 
         private const int MaxNotificationsPerMessage = 10;
@@ -29,7 +29,7 @@ namespace QiQiBot.Services
         public CitadelActivityService(
             IPlayerService playerService,
             IClanService clanService,
-            DiscordSocketClient discordClient,
+            IDiscordSocketClientWrapper discordClient,
             ILogger<CitadelActivityService> logger)
         {
             _playerService = playerService;

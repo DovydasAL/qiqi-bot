@@ -13,13 +13,13 @@ namespace QiQiBot.HostedServices;
 
 internal sealed class BotService : IHostedService, IAsyncDisposable
 {
-    private readonly DiscordSocketClient _client;
+    private readonly IDiscordSocketClientWrapper _client;
     private readonly IServiceProvider _serviceProvider;
     private readonly IConfiguration _config;
     private readonly ILogger<BotService> _logger;
 
     public BotService(
-        DiscordSocketClient client,
+        IDiscordSocketClientWrapper client,
         IServiceProvider serviceProvider,
         IConfiguration config,
         ILogger<BotService> logger)
