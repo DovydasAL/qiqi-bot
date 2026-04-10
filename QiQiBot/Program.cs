@@ -9,6 +9,7 @@ using QiQiBot.HostedServices;
 using QiQiBot.Models;
 using QiQiBot.Services;
 using QiQiBot.Services.Abstractions;
+using QiQiBot.Services.Notifications;
 
 namespace QiQiBot
 {
@@ -42,6 +43,9 @@ namespace QiQiBot
                 var client = new DiscordSocketClient(socketConfig);
                 return new DiscordSocketClientWrapper(client);
             });
+            builder.Services.AddScoped<INotificationChannelResolver, NotificationChannelResolver>();
+            builder.Services.AddScoped<IMessageBatcher, MessageBatcher>();
+            builder.Services.AddScoped<IDiscordMessageSender, DiscordMessageSender>();
             builder.Services.AddScoped<IClanRegistrationService, ClanRegistrationService>();
             builder.Services.AddScoped<IGuildConfigurationService, GuildConfigurationService>();
             builder.Services.AddScoped<IClanQueryService, ClanQueryService>();

@@ -1,6 +1,6 @@
-using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using QiQiBot.Models;
+using QiQiBot.Services.Notifications;
 using System.Text.RegularExpressions;
 using static QiQiBot.Models.RuneMetricsProfileDTO;
 
@@ -10,7 +10,9 @@ namespace QiQiBot.Services
     {
         private readonly IPlayerService _playerService;
         private readonly IClanService _clanService;
-        private readonly IDiscordSocketClientWrapper _discordClient;
+        private readonly INotificationChannelResolver _notificationChannelResolver;
+        private readonly IMessageBatcher _messageBatcher;
+        private readonly IDiscordMessageSender _discordMessageSender;
         private readonly ILogger<CitadelActivityService> _logger;
 
         private const int MaxNotificationsPerMessage = 10;
@@ -29,12 +31,16 @@ namespace QiQiBot.Services
         public CitadelActivityService(
             IPlayerService playerService,
             IClanService clanService,
-            IDiscordSocketClientWrapper discordClient,
+            INotificationChannelResolver notificationChannelResolver,
+            IMessageBatcher messageBatcher,
+            IDiscordMessageSender discordMessageSender,
             ILogger<CitadelActivityService> logger)
         {
             _playerService = playerService;
             _clanService = clanService;
-            _discordClient = discordClient;
+            _notificationChannelResolver = notificationChannelResolver;
+            _messageBatcher = messageBatcher;
+            _discordMessageSender = discordMessageSender;
             _logger = logger;
         }
 
@@ -207,35 +213,18 @@ namespace QiQiBot.Services
                         continue;
                     }
 
-                    var discordGuild = _discordClient.GetGuild(guild.GuildId);
-                    if (discordGuild == null)
-                    {
-                        _logger.LogWarning(
-                            "Discord guild {GuildId} not found for clan {ClanName}, skipping citadel notifications.",
-                            guild.GuildId,
-                            clan.Name);
-                        continue;
-                    }
+                    var channel = _notificationChannelResolver.ResolveTextChannel(
+                        guild.GuildId,
+                        guild.ClanCitadelChannelId.Value,
+                        "citadel");
 
-                    var channel = discordGuild.GetTextChannel(guild.ClanCitadelChannelId.Value);
                     if (channel == null)
                     {
-                        _logger.LogWarning(
-                            "Citadel notification channel {ChannelId} for guild {GuildId} not found, skipping.",
-                            guild.ClanCitadelChannelId.Value,
-                            guild.Id);
                         continue;
                     }
 
-                    var messageBatches = messages
-                        .Chunk(MaxNotificationsPerMessage)
-                        .Select(batch => string.Join(Environment.NewLine, batch));
-
-                    foreach (var batch in messageBatches)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        await channel.SendMessageAsync(batch);
-                    }
+                    var messageBatches = _messageBatcher.BatchLines(messages, MaxNotificationsPerMessage);
+                    await _discordMessageSender.SendBatchesAsync(channel, messageBatches, cancellationToken);
                 }
             }
         }

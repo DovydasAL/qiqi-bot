@@ -1,18 +1,28 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.Linq;
+using QiQiBot.Services.Notifications;
 
 namespace QiQiBot.Services
 {
     public class ClanEventService : IClanEventService
     {
-        private readonly IDiscordSocketClientWrapper _client;
         private readonly IClanService _clanService;
+        private readonly INotificationChannelResolver _notificationChannelResolver;
+        private readonly IMessageBatcher _messageBatcher;
+        private readonly IDiscordMessageSender _discordMessageSender;
         private readonly ILogger<IClanEventService> _logger;
         private const int MaxLinesPerNotification = 20;
-        public ClanEventService(IDiscordSocketClientWrapper client, IClanService clanService, ILogger<IClanEventService> logger)
+
+        public ClanEventService(
+            IClanService clanService,
+            INotificationChannelResolver notificationChannelResolver,
+            IMessageBatcher messageBatcher,
+            IDiscordMessageSender discordMessageSender,
+            ILogger<IClanEventService> logger)
         {
-            _client = client;
             _clanService = clanService;
+            _notificationChannelResolver = notificationChannelResolver;
+            _messageBatcher = messageBatcher;
+            _discordMessageSender = discordMessageSender;
             _logger = logger;
         }
 
@@ -24,14 +34,22 @@ namespace QiQiBot.Services
                 _logger.LogTrace($"Guild {guildId} does not have a clan join/leave channel set, skipping player join event.");
                 return;
             }
-            var notificationBatches = playerNames
-                .Select(player => $"**{player}** has joined the clan!")
-                .Chunk(MaxLinesPerNotification)
-                .Select(batch => string.Join(Environment.NewLine, batch));
-            foreach (var batch in notificationBatches)
+
+            var channel = _notificationChannelResolver.ResolveTextChannel(
+                guildId,
+                dbGuild.ClanLeaveJoinChannelId.Value,
+                "join/leave");
+
+            if (channel == null)
             {
-                await SendNotification(batch, guildId, dbGuild.ClanLeaveJoinChannelId.Value);
+                return;
             }
+
+            var notificationBatches = _messageBatcher.BatchLines(
+                playerNames.Select(player => $"**{player}** has joined the clan!"),
+                MaxLinesPerNotification);
+
+            await _discordMessageSender.SendBatchesAsync(channel, notificationBatches, CancellationToken.None);
         }
 
         public async Task SendPlayerLeftEvent(ulong guildId, List<string> playerNames)
@@ -42,14 +60,22 @@ namespace QiQiBot.Services
                 _logger.LogTrace($"Guild {guildId} does not have a clan join/leave channel set, skipping player left event.");
                 return;
             }
-            var notificationBatches = playerNames
-                .Select(player => $"**{player}** is no longer in the clan")
-                .Chunk(MaxLinesPerNotification)
-                .Select(batch => string.Join(Environment.NewLine, batch));
-            foreach (var batch in notificationBatches)
+
+            var channel = _notificationChannelResolver.ResolveTextChannel(
+                guildId,
+                dbGuild.ClanLeaveJoinChannelId.Value,
+                "join/leave");
+
+            if (channel == null)
             {
-                await SendNotification(batch, guildId, dbGuild.ClanLeaveJoinChannelId.Value);
+                return;
             }
+
+            var notificationBatches = _messageBatcher.BatchLines(
+                playerNames.Select(player => $"**{player}** is no longer in the clan"),
+                MaxLinesPerNotification);
+
+            await _discordMessageSender.SendBatchesAsync(channel, notificationBatches, CancellationToken.None);
         }
 
         public async Task SendPlayerRenameEvent(ulong guildId, List<(string OldName, string NewName)> renames)
@@ -61,33 +87,21 @@ namespace QiQiBot.Services
                 return;
             }
 
-            var notificationBatches = renames
-                .Select(rename => $"**{rename.OldName}** has renamed to **{rename.NewName}**")
-                .Chunk(MaxLinesPerNotification)
-                .Select(batch => string.Join(Environment.NewLine, batch));
+            var channel = _notificationChannelResolver.ResolveTextChannel(
+                guildId,
+                dbGuild.ClanLeaveJoinChannelId.Value,
+                "join/leave");
 
-            foreach (var batch in notificationBatches)
-            {
-                await SendNotification(batch, guildId, dbGuild.ClanLeaveJoinChannelId.Value);
-            }
-        }
-
-        private async Task SendNotification(string message, ulong guildId, ulong channelId)
-        {
-
-            var guild = _client.GetGuild(guildId);
-            if (guild == null)
-            {
-                _logger.LogWarning($"Guild {guildId} not found in Discord client, cannot send player notification.");
-                return;
-            }
-            var channel = guild.GetTextChannel(channelId);
             if (channel == null)
             {
-                _logger.LogWarning($"Channel {channelId} not found in guild {guildId}, cannot send player notification.");
                 return;
             }
-            await channel.SendMessageAsync(message);
+
+            var notificationBatches = _messageBatcher.BatchLines(
+                renames.Select(rename => $"**{rename.OldName}** has renamed to **{rename.NewName}**"),
+                MaxLinesPerNotification);
+
+            await _discordMessageSender.SendBatchesAsync(channel, notificationBatches, CancellationToken.None);
         }
     }
 }

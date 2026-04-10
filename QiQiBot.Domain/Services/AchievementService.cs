@@ -1,6 +1,6 @@
-using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using QiQiBot.Models;
+using QiQiBot.Services.Notifications;
 using System.Text.RegularExpressions;
 using static QiQiBot.Models.RuneMetricsProfileDTO;
 
@@ -10,7 +10,9 @@ namespace QiQiBot.Services
     {
         private readonly IPlayerService _playerService;
         private readonly IClanService _clanService;
-        private readonly IDiscordSocketClientWrapper _discordClient;
+        private readonly INotificationChannelResolver _notificationChannelResolver;
+        private readonly IMessageBatcher _messageBatcher;
+        private readonly IDiscordMessageSender _discordMessageSender;
         private readonly ILogger<AchievementService> _logger;
 
         private static readonly string[] FilterActivityTextRegexStrings = new[]
@@ -74,12 +76,16 @@ namespace QiQiBot.Services
         public AchievementService(
             IPlayerService playerService,
             IClanService clanService,
-            IDiscordSocketClientWrapper discordClient,
+            INotificationChannelResolver notificationChannelResolver,
+            IMessageBatcher messageBatcher,
+            IDiscordMessageSender discordMessageSender,
             ILogger<AchievementService> logger)
         {
             _playerService = playerService;
             _clanService = clanService;
-            _discordClient = discordClient;
+            _notificationChannelResolver = notificationChannelResolver;
+            _messageBatcher = messageBatcher;
+            _discordMessageSender = discordMessageSender;
             _logger = logger;
         }
 
@@ -208,23 +214,13 @@ namespace QiQiBot.Services
                         continue;
                     }
 
-                    var discordGuild = _discordClient.GetGuild(guild.GuildId);
-                    if (discordGuild == null)
-                    {
-                        _logger.LogWarning(
-                            "Discord guild {GuildId} not found for clan {ClanName}, skipping.",
-                            guild.GuildId,
-                            clan.Name);
-                        continue;
-                    }
+                    var channel = _notificationChannelResolver.ResolveTextChannel(
+                        guild.GuildId,
+                        guild.AchievementsChannelId.Value,
+                        "achievement");
 
-                    var channel = discordGuild.GetTextChannel(guild.AchievementsChannelId.Value);
                     if (channel == null)
                     {
-                        _logger.LogWarning(
-                            "Achievements channel {ChannelId} for guild {GuildId} not found, skipping.",
-                            guild.AchievementsChannelId.Value,
-                            guild.Id);
                         continue;
                     }
 
@@ -251,16 +247,8 @@ namespace QiQiBot.Services
                         continue;
                     }
 
-                    var messageBatches = guildMessages
-                        .Chunk(MaxAchievementsPerMessage)
-                        .Select(batch => string.Join(Environment.NewLine, batch))
-                        .ToList();
-
-                    foreach (var batch in messageBatches)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        await channel.SendMessageAsync(batch);
-                    }
+                    var messageBatches = _messageBatcher.BatchLines(guildMessages, MaxAchievementsPerMessage);
+                    await _discordMessageSender.SendBatchesAsync(channel, messageBatches, cancellationToken);
                 }
             }
         }
