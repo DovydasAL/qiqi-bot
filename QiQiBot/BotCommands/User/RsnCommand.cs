@@ -55,11 +55,6 @@ internal class RsnCommand(IRsnService rsnService, IDiscordSocketClientWrapper cl
             await command.RespondAsync($"Updated your RuneScape name from {previousName} to {providedName}. Your Discord nickname has also been changed for this server.", ephemeral: true);
         }
 
-        var guild = _client.GetGuild(guildId);
-        var guildUser = guild?.GetUser(userId);
-        if (guildUser is not null)
-        {
-            await guildUser.ModifyAsync(x => x.Nickname = providedName);
-        }
+        await _client.TrySetGuildUserNicknameAsync(guildId, userId, providedName);
     }
 }

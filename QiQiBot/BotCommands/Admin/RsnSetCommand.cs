@@ -1,5 +1,4 @@
 using Discord;
-using Discord.WebSocket;
 using QiQiBot.Services;
 
 namespace QiQiBot.BotCommands;
@@ -36,7 +35,7 @@ internal class RsnSetCommand(IRsnService rsnService, IDiscordSocketClientWrapper
         var userOption = command.Options.FirstOrDefault(x => x.Name == "user");
         var nameOption = command.Options.FirstOrDefault(x => x.Name == "name");
 
-        var targetUser = userOption?.Value as SocketGuildUser;
+        var targetUser = userOption?.Value as IGuildUser;
         var providedName = nameOption?.Value?.ToString()?.Trim();
 
         if (targetUser is null)
@@ -68,11 +67,6 @@ internal class RsnSetCommand(IRsnService rsnService, IDiscordSocketClientWrapper
             await command.RespondAsync($"Updated {targetUser.Mention}'s RuneScape name from {previousName} to {providedName}. Their Discord nickname has also been changed for this server.", ephemeral: true);
         }
 
-        var guild = _client.GetGuild(guildId);
-        var guildUser = guild?.GetUser(targetUser.Id);
-        if (guildUser is not null)
-        {
-            await guildUser.ModifyAsync(x => x.Nickname = providedName);
-        }
+        await _client.TrySetGuildUserNicknameAsync(guildId, targetUser.Id, providedName);
     }
 }

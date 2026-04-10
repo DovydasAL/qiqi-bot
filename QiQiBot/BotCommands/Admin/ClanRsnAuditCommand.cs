@@ -1,5 +1,4 @@
 using Discord;
-using Discord.WebSocket;
 using QiQiBot.Exceptions;
 using QiQiBot.Services;
 using System.Text;
@@ -35,8 +34,8 @@ internal class ClanRsnAuditCommand(IRsnService rsnService, IClanService clanServ
         }
 
         var guildId = command.GuildId.Value;
-        var discordGuild = _client.GetGuild(guildId);
-        if (discordGuild == null)
+        var guildUsers = _client.GetGuildUsers(guildId);
+        if (guildUsers is null)
         {
             await command.RespondAsync("Could not find this Discord server in the bot cache.");
             return;
@@ -44,7 +43,7 @@ internal class ClanRsnAuditCommand(IRsnService rsnService, IClanService clanServ
 
         var rsnByUserId = await _rsnService.GetRsnsAsync(guildId);
 
-        var usersWithoutRsn = discordGuild.Users
+        var usersWithoutRsn = guildUsers
             .Where(u => !u.IsBot && !rsnByUserId.ContainsKey(u.Id))
             .OrderBy(u => u.DisplayName)
             .ToList();
@@ -105,7 +104,8 @@ internal class ClanRsnAuditCommand(IRsnService rsnService, IClanService clanServ
         {
             foreach (var entry in rsnNotInClan)
             {
-                if (discordGuild.GetUser(entry.UserId) is SocketGuildUser guildUser)
+                var guildUser = _client.GetGuildUser(guildId, entry.UserId);
+                if (guildUser is not null)
                 {
                     sb.AppendLine($"- {entry.Rsn} (Discord: {guildUser.Username}, {entry.UserId})");
                 }

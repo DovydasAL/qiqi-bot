@@ -15,4 +15,10 @@ public interface IDiscordSocketClientWrapper
     Task StopAsync();
     Task BulkOverwriteGlobalApplicationCommandsAsync(ApplicationCommandProperties[] properties);
     SocketGuild? GetGuild(ulong id);
+
+    IReadOnlyList<DiscordGuildUserInfo>? GetGuildUsers(ulong guildId);
+    DiscordGuildUserInfo? GetGuildUser(ulong guildId, ulong userId);
+    Task TrySetGuildUserNicknameAsync(ulong guildId, ulong userId, string nickname);
 }
+
+public sealed record DiscordGuildUserInfo(ulong Id, string Username, string DisplayName, bool IsBot);

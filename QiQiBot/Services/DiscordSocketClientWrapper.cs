@@ -60,4 +60,45 @@ public sealed class DiscordSocketClientWrapper : IDiscordSocketClientWrapper
     {
         return _client.GetGuild(id);
     }
+
+    public IReadOnlyList<DiscordGuildUserInfo>? GetGuildUsers(ulong guildId)
+    {
+        var guild = _client.GetGuild(guildId);
+        if (guild is null)
+        {
+            return null;
+        }
+
+        return guild.Users
+            .Select(u => new DiscordGuildUserInfo(
+                u.Id,
+                u.Username,
+                u.DisplayName,
+                u.IsBot))
+            .ToList();
+    }
+
+    public DiscordGuildUserInfo? GetGuildUser(ulong guildId, ulong userId)
+    {
+        var guild = _client.GetGuild(guildId);
+        var user = guild?.GetUser(userId);
+        if (user is null)
+        {
+            return null;
+        }
+
+        return new DiscordGuildUserInfo(user.Id, user.Username, user.DisplayName, user.IsBot);
+    }
+
+    public async Task TrySetGuildUserNicknameAsync(ulong guildId, ulong userId, string nickname)
+    {
+        var guild = _client.GetGuild(guildId);
+        var user = guild?.GetUser(userId);
+        if (user is null)
+        {
+            return;
+        }
+
+        await user.ModifyAsync(x => x.Nickname = nickname);
+    }
 }
