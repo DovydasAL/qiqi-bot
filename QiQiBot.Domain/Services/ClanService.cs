@@ -1,231 +1,64 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using QiQiBot.Exceptions;
-using QiQiBot.Models;
+﻿using QiQiBot.Models;
+using QiQiBot.Services.Abstractions;
 
 namespace QiQiBot.Services
 {
     public class ClanService : IClanService
     {
-        private ClanContext _dbContext;
-        private ILogger<ClanService> _logger;
-        public ClanService(ClanContext dbContext, ILogger<ClanService> logger)
+        private readonly IClanRegistrationService _clanRegistrationService;
+        private readonly IGuildConfigurationService _guildConfigurationService;
+        private readonly IClanQueryService _clanQueryService;
+        private readonly IClanMembershipService _clanMembershipService;
+
+        public ClanService(
+            IClanRegistrationService clanRegistrationService,
+            IGuildConfigurationService guildConfigurationService,
+            IClanQueryService clanQueryService,
+            IClanMembershipService clanMembershipService)
         {
-            _dbContext = dbContext;
-            _logger = logger;
+            _clanRegistrationService = clanRegistrationService;
+            _guildConfigurationService = guildConfigurationService;
+            _clanQueryService = clanQueryService;
+            _clanMembershipService = clanMembershipService;
         }
 
-        public async Task RegisterClan(string clanName, ulong guildId)
-        {
-            var guild = await _dbContext.Guilds.Include(x => x.Clan).FirstOrDefaultAsync(x => x.GuildId == guildId);
-            if (guild == null)
-            {
-                guild = new Guild
-                {
-                    GuildId = guildId
-                };
-                await _dbContext.Guilds.AddAsync(guild);
-            }
+        public Task RegisterClan(string clanName, ulong guildId)
+            => _clanRegistrationService.RegisterClan(clanName, guildId);
 
-            var clan = await _dbContext.Clans.FirstOrDefaultAsync(x => x.Name == clanName);
-            if (clan == null)
-            {
-                _logger.LogInformation($"Creating clan {clanName} for guild {guildId}");
-                clan = new Clan
-                {
-                    Name = clanName
-                };
-                await _dbContext.Clans.AddAsync(clan);
-            }
+        public Task SetAchievementChannel(ulong guildId, ulong? channelId)
+            => _guildConfigurationService.SetAchievementChannel(guildId, channelId);
 
-            var previousClanName = guild.Clan?.Name;
-            var isSameClan = guild.ClanId.HasValue && clan.Id != 0 && guild.ClanId.Value == clan.Id;
-            if (isSameClan)
-            {
-                _logger.LogInformation($"Guild {guildId} already registered to clan {clanName}");
-            }
-            else
-            {
-                if (previousClanName == null)
-                {
-                    _logger.LogInformation($"Assigning clan {clanName} to guild {guildId}");
-                }
-                else
-                {
-                    _logger.LogInformation($"Updating clan for guild {guildId} from {previousClanName} to {clanName}");
-                }
+        public Task SetLeaveJoinChannel(ulong guildId, ulong? channelId)
+            => _guildConfigurationService.SetLeaveJoinChannel(guildId, channelId);
 
-                guild.Clan = clan;
-            }
+        public Task SetWelcomeChannel(ulong guildId, ulong? channelId)
+            => _guildConfigurationService.SetWelcomeChannel(guildId, channelId);
 
-            await _dbContext.SaveChangesAsync();
-        }
+        public Task SetCitadelChannel(ulong guildId, ulong? channelId)
+            => _guildConfigurationService.SetCitadelChannel(guildId, channelId);
 
-        public async Task SetAchievementChannel(ulong guildId, ulong? channelId)
-        {
-            var guild = await _dbContext.Guilds.FirstOrDefaultAsync(x => x.GuildId == guildId);
-            if (guild == null)
-            {
-                throw new Exception($"No guild found with guildId {guildId}");
-            }
-            guild.AchievementsChannelId = channelId;
-            await _dbContext.SaveChangesAsync();
-        }
+        public Task<List<Clan>> GetClans()
+            => _clanQueryService.GetClans();
 
-        public async Task SetLeaveJoinChannel(ulong guildId, ulong? channelId)
-        {
-            var guild = await _dbContext.Guilds.FirstOrDefaultAsync(x => x.GuildId == guildId);
-            if (guild == null)
-            {
-                throw new Exception($"No guild found with guildId {guildId}");
-            }
-            guild.ClanLeaveJoinChannelId = channelId;
-            await _dbContext.SaveChangesAsync();
-        }
-
-        public async Task SetWelcomeChannel(ulong guildId, ulong? channelId)
-        {
-            var guild = await _dbContext.Guilds.FirstOrDefaultAsync(x => x.GuildId == guildId);
-            if (guild == null)
-            {
-                throw new Exception($"No guild found with guildId {guildId}");
-            }
-            guild.ClanWelcomeChannelId = channelId;
-            await _dbContext.SaveChangesAsync();
-        }
-
-        public async Task SetCitadelChannel(ulong guildId, ulong? channelId)
-        {
-            var guild = await _dbContext.Guilds.FirstOrDefaultAsync(x => x.GuildId == guildId);
-            if (guild == null)
-            {
-                throw new Exception($"No guild found with guildId {guildId}");
-            }
-
-            guild.ClanCitadelChannelId = channelId;
-            await _dbContext.SaveChangesAsync();
-        }
-
-        public async Task<Clan> GetClanAsync(ulong guildId)
-        {
-            var guild = await _dbContext.Guilds.Include(x => x.Clan).FirstOrDefaultAsync(x => x.GuildId == guildId);
-            if (guild == null || guild.Clan == null)
-            {
-                throw new NoClanRegisteredException(guildId);
-            }
-            return guild.Clan;
-        }
+        public Task<Clan> GetClanAsync(ulong guildId)
+            => _clanQueryService.GetClanAsync(guildId);
 
         public Task<List<Player>> GetClanMembers(long clanId)
-        {
-            return _dbContext.Players.Where(x => x.ClanId == clanId).ToListAsync();
-        }
+            => _clanQueryService.GetClanMembers(clanId);
 
-        public async Task<List<Clan>> GetClans()
-        {
-            return await _dbContext.Clans.Include(x => x.Guilds).ToListAsync();
-        }
+        public Task UpdateClanMembers(long clanId, List<Player> members)
+            => _clanMembershipService.UpdateClanMembers(clanId, members);
 
-        public async Task UpdateClanMembers(long clanId, List<Player> members)
-        {
-            var updateDate = DateTime.UtcNow;
-            var existingMembers = await GetClanMembers(clanId);
-            var existingMemberDictionary = existingMembers.ToDictionary(m => m.Name, m => m);
-            var knownMembersByName = await _dbContext.Players.Where(p => members.Select(x => x.Name).Contains(p.Name)).ToDictionaryAsync(p => p.Name, p => p);
-            var totalNew = 0;
-            var totalUpdated = 0;
-            var totalDeleted = 0;
-            foreach (var member in members)
-            {
-                // This member is in the clan in the database, and in the API
-                if (existingMemberDictionary.TryGetValue(member.Name, out var existingMember))
-                {
-                    // If the player is in the same clan but has more experience, update it
-                    if (member.ClanExperience > existingMember.ClanExperience)
-                    {
-                        existingMember.ClanExperience = member.ClanExperience;
-                        existingMember.LastClanExperienceUpdate = updateDate;
-                        totalUpdated++;
-                    }
-                }
-                // This member is in the clan in the API, but not in the database
-                else if (knownMembersByName.TryGetValue(member.Name, out var knownMember))
-                {
-                    knownMember.ClanId = clanId;
-                    knownMember.ClanExperience = member.ClanExperience;
-                    knownMember.LastClanExperienceUpdate = updateDate;
-                    totalNew++;
-                }
-                // This member is not in the database at all
-                else
-                {
-                    _dbContext.Players.Add(member);
-                    totalNew++;
-                }
-            }
-            var membersDictionary = members.ToDictionary(m => m.Name, m => m);
-            // If an existing member is no longer in the clan, set their ClanId to null
-            foreach (var existingMember in existingMembers)
-            {
-                if (!membersDictionary.ContainsKey(existingMember.Name))
-                {
-                    existingMember.ClanId = null;
-                    totalDeleted++;
-                }
-            }
-            _logger.LogInformation($"Updating Clan {clanId} - Total members: {members.Count}, New members: {totalNew}, Updated members: {totalUpdated}, Deleted members: {totalDeleted}");
-            await _dbContext.SaveChangesAsync();
-        }
+        public Task SetLastScraped(long clanId, DateTime date)
+            => _clanMembershipService.SetLastScraped(clanId, date);
 
-        public async Task SetLastScraped(long clanId, DateTime date)
-        {
-            var clan = await _dbContext.Clans.FirstOrDefaultAsync(x => x.Id == clanId);
-            if (clan != null)
-            {
-                _logger.LogInformation($"Setting last scraped for clan {clanId} to {date}");
-                clan.LastScraped = date;
-                await _dbContext.SaveChangesAsync();
-            }
-        }
+        public Task SetCitadelResetTime(ulong guildId, long day, string time)
+            => _guildConfigurationService.SetCitadelResetTime(guildId, day, time);
 
-        public async Task SetCitadelResetTime(ulong guildId, long day, string time)
-        {
-            var guild = await _dbContext.Guilds.FirstOrDefaultAsync(x => x.GuildId == guildId);
-            if (guild == null)
-            {
-                throw new Exception($"No guild found with guildId {guildId}");
-            }
-            // Ensure time is in the format HH:mm and between 00:00 and 23:59
-            if (!TimeSpan.TryParse(time, out var capResetTime) || capResetTime < TimeSpan.Zero || capResetTime >= TimeSpan.FromDays(1))
-            {
-                throw new Exception($"Invalid cap reset time: {time}. Time must be in the format HH:mm and between 00:00 and 23:59.");
-            }
-            guild.CapResetDay = day;
-            guild.CapResetTime = time;
-            await _dbContext.SaveChangesAsync();
-        }
+        public Task SetDebugMode(ulong guildId, bool enabled)
+            => _guildConfigurationService.SetDebugMode(guildId, enabled);
 
-        public async Task SetDebugMode(ulong guildId, bool enabled)
-        {
-            var guild = await _dbContext.Guilds.FirstOrDefaultAsync(x => x.GuildId == guildId);
-            if (guild == null)
-            {
-                throw new Exception($"No guild found with guildId {guildId}");
-            }
-
-            guild.DebugModeEnabled = enabled;
-            await _dbContext.SaveChangesAsync();
-        }
-
-        public async Task<Guild> GetGuild(ulong guildId)
-        {
-            var guild = await _dbContext.Guilds.Include(x => x.Clan).FirstOrDefaultAsync(x => x.GuildId == guildId);
-            if (guild == null)
-            {
-                throw new NoClanRegisteredException(guildId);
-            }
-            return guild;
-        }
-
+        public Task<Guild> GetGuild(ulong guildId)
+            => _clanQueryService.GetGuild(guildId);
     }
 }
