@@ -70,7 +70,8 @@ public sealed class PlayerScrapeService : BackgroundService
                     await achievementService.ProcessAchievementsAsync(profiles, stoppingToken);
                     await playerService.UpdatePlayersFromRuneMetrics(
                         players.Select(x => x.Name).ToList(),
-                        profiles);
+                        profiles,
+                        stoppingToken);
 
 
                     _logger.LogInformation("Finished player scrape cycle.");

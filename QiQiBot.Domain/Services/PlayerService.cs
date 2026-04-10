@@ -16,12 +16,14 @@ namespace QiQiBot.Services
             _logger = logger;
         }
 
-        public async Task UpdatePlayersFromRuneMetrics(List<string> names, List<RuneMetricsProfileDTO> profiles)
+        public async Task UpdatePlayersFromRuneMetrics(List<string> names, List<RuneMetricsProfileDTO> profiles, CancellationToken cancellationToken = default)
         {
-            var existingMembers = await _dbContext.Players.Where(x => names.Contains(x.Name)).ToListAsync();
+            var existingMembers = await _dbContext.Players.Where(x => names.Contains(x.Name)).ToListAsync(cancellationToken);
             var profilesDictionary = profiles.ToDictionary(p => p.Name, p => p);
             foreach (var member in existingMembers)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 try
                 {
                     if (profilesDictionary.TryGetValue(member.Name, out var profile))
@@ -39,6 +41,12 @@ namespace QiQiBot.Services
                             }
                             continue;
                         }
+
+                        if (profile.Activities == null || profile.Activities.Count == 0)
+                        {
+                            continue;
+                        }
+
                         var sortedActivites = profile.Activities.OrderByDescending(x => x.RuneMetricsStringDateToObject()).ToList();
                         var capActivity = sortedActivites.FirstOrDefault(x => Regex.IsMatch(x.Text.ToLower(), @".*capped at my clan citadel.*"));
                         if (capActivity != null && (member.LastCapped == null || capActivity.RuneMetricsStringDateToObject() > member.LastCapped))
@@ -57,7 +65,7 @@ namespace QiQiBot.Services
                     _logger.LogError(ex, "Error updating player {PlayerName} from RuneMetrics", member.Name);
                 }
             }
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
 
