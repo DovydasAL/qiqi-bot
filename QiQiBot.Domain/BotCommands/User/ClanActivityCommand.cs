@@ -9,7 +9,7 @@ namespace QiQiBot.BotCommands
     /// <summary>
     /// Generates a clan activity CSV report showing each member's latest known activity date.
     /// </summary>
-    internal class ClanActivityCommand : IBotCommand
+    public class ClanActivityCommand : IBotCommand
     {
         public static string Name => "clan-activity";
         private IClanService _clanService;

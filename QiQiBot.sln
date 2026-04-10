@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QiQiBot", "QiQiBot\QiQiBot.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QiQiBot.UnitTests", "QiQiBot.UnitTests\QiQiBot.UnitTests.csproj", "{6231FFDC-F592-4485-9567-F13F6F51EAB1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QiQiBot.Domain", "QiQiBot.Domain\QiQiBot.Domain.csproj", "{258D2B7C-224F-4EE6-B5F9-7ADB3DE9FAE2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{6231FFDC-F592-4485-9567-F13F6F51EAB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6231FFDC-F592-4485-9567-F13F6F51EAB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6231FFDC-F592-4485-9567-F13F6F51EAB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{258D2B7C-224F-4EE6-B5F9-7ADB3DE9FAE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{258D2B7C-224F-4EE6-B5F9-7ADB3DE9FAE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{258D2B7C-224F-4EE6-B5F9-7ADB3DE9FAE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{258D2B7C-224F-4EE6-B5F9-7ADB3DE9FAE2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

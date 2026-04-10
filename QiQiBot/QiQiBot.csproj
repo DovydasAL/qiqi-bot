@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Discord.Net" Version="3.18.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.14" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.12">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -29,6 +29,10 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="QiQiBot.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\QiQiBot.Domain\QiQiBot.Domain.csproj" />
   </ItemGroup>
 
 </Project>

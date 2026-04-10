@@ -6,7 +6,7 @@ namespace QiQiBot.BotCommands;
 /// <summary>
 /// Links the calling user's RuneScape display name to their Discord account in the current server.
 /// </summary>
-internal class RsnCommand(IRsnService rsnService, IDiscordSocketClientWrapper client) : IBotCommand
+public class RsnCommand(IRsnService rsnService, IDiscordSocketClientWrapper client) : IBotCommand
 {
     public static string Name => "rsn";
 

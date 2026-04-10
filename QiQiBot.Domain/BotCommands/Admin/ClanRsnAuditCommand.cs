@@ -8,7 +8,7 @@ namespace QiQiBot.BotCommands;
 /// <summary>
 /// Generates an audit report of Discord members without RSNs and RSNs not found in the configured clan.
 /// </summary>
-internal class ClanRsnAuditCommand(IRsnService rsnService, IClanService clanService, IDiscordSocketClientWrapper client) : IBotCommand
+public class ClanRsnAuditCommand(IRsnService rsnService, IClanService clanService, IDiscordSocketClientWrapper client) : IBotCommand
 {
     public static string Name => "clan-rsn-audit";
 

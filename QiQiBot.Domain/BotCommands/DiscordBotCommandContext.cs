@@ -2,7 +2,7 @@ using Discord.WebSocket;
 
 namespace QiQiBot.BotCommands;
 
-internal sealed class DiscordBotCommandContext : IBotCommandContext
+public class DiscordBotCommandContext : IBotCommandContext
 {
     private readonly SocketSlashCommand _command;
 

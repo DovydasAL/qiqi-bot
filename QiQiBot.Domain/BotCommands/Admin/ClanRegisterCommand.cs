@@ -6,7 +6,7 @@ namespace QiQiBot.BotCommands
     /// <summary>
     /// Registers a clan for the current Discord server.
     /// </summary>
-    internal class ClanRegisterCommand : IBotCommand
+    public class ClanRegisterCommand : IBotCommand
     {
         public static string Name => "clan-register";
 

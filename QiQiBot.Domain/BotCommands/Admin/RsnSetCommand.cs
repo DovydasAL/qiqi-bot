@@ -6,7 +6,7 @@ namespace QiQiBot.BotCommands;
 /// <summary>
 /// Allows administrators to set or update another member's RuneScape display name for the server.
 /// </summary>
-internal class RsnSetCommand(IRsnService rsnService, IDiscordSocketClientWrapper client) : IBotCommand
+public class RsnSetCommand(IRsnService rsnService, IDiscordSocketClientWrapper client) : IBotCommand
 {
     public static string Name => "rsn-set";
 
