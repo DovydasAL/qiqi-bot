@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using QiQiBot.Models;
 using QiQiBot.Services.Notifications;
-using System.Text.RegularExpressions;
+using QiQiBot.Services.RuneMetrics;
 using static QiQiBot.Models.RuneMetricsProfileDTO;
 
 namespace QiQiBot.Services
@@ -13,62 +13,8 @@ namespace QiQiBot.Services
         private readonly INotificationChannelResolver _notificationChannelResolver;
         private readonly IMessageBatcher _messageBatcher;
         private readonly IDiscordMessageSender _discordMessageSender;
+        private readonly IAchievementFilter _achievementFilter;
         private readonly ILogger<AchievementService> _logger;
-
-        private static readonly string[] FilterActivityTextRegexStrings = new[]
-        {
-            @".*(?!200000000(?:\D|$))\d+XP.*",
-            @".*songs unlocked.*",
-            @".*Quest complete.*",
-            @".*Clan Fealty.*",
-            @".*Visited my Clan Citadel.*",
-            @".*capped at my clan citadel.*",
-            @".*crystal triskelion fragment.*",
-            @".*abyssal whip.*",
-            @".*dragon helm.*",
-            @".*shield left half.*",
-            @".*dragon boots.*",
-            @".*dragon hatchet.*",
-            @".*dragon platelegs.*",
-            @".*ancient effigy.*",
-            @".*looted a book.*",
-            @".*archaeological mystery.*",
-            @".*songs unlocked.*",
-            @".*charm sprites.*",
-            @".*killed.*",
-            @".*defeated.*",
-            @".*dungeon floor \d+.*",
-            @".*granite maul.*",
-            @".*godsword shard.*",
-            @".*jaws of the abyss.*",
-            @".*demon slayer.*",
-            @".*tetracompass.*",
-            @".*fight kiln.*",
-            @".*amulet of ranging.*",
-            @".*bandos (?:helmet|chestplate|tassets|gloves|boots|warshield|hilt).*",
-            @".*armadyl (?:helmet|chestplate|chainskirt|gloves|boots|buckler|crossbow|hilt).*",
-            @".*saradomin (?:hilt|sword).*",
-            @".*(?:whisper|murmur|hiss) of saradomin.*",
-            @".*(?:zamorak hilt|zamorakian spear).*",
-            @".*(?:hood|garb|gown|gloves|boots|ward) of subjugation.*",
-            @".*silver spine.*",
-            @".*sanguine spine.*",
-        };
-
-        private static readonly string[] FilterActivityDetailRegexStrings = new[]
-        {
-            @".*am now level (?!99\b|110\b|120\b)\d+.*",
-            @".*at least level (?!(10|20|30|40|50|60|70|80|90|99|110|120)\b)\d+ in all skills.*",
-            @".*QP milestone.*",
-        };
-
-        private static readonly Regex[] FilterActivityTextRegexes = FilterActivityTextRegexStrings
-            .Select(pattern => new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase))
-            .ToArray();
-
-        private static readonly Regex[] FilterActivityDetailRegexes = FilterActivityDetailRegexStrings
-            .Select(pattern => new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase))
-            .ToArray();
 
         private const int MaxAchievementsPerMessage = 10;
         private sealed record AchievementMessage(string Text, bool IsFiltered);
@@ -79,6 +25,7 @@ namespace QiQiBot.Services
             INotificationChannelResolver notificationChannelResolver,
             IMessageBatcher messageBatcher,
             IDiscordMessageSender discordMessageSender,
+            IAchievementFilter achievementFilter,
             ILogger<AchievementService> logger)
         {
             _playerService = playerService;
@@ -86,6 +33,7 @@ namespace QiQiBot.Services
             _notificationChannelResolver = notificationChannelResolver;
             _messageBatcher = messageBatcher;
             _discordMessageSender = discordMessageSender;
+            _achievementFilter = achievementFilter;
             _logger = logger;
         }
 
@@ -189,7 +137,7 @@ namespace QiQiBot.Services
                     var activities = kvp.Value.OrderBy(x => x.RuneMetricsStringDateToObject());
                     foreach (var activity in activities)
                     {
-                        var isFiltered = ShouldFilterActivity(activity);
+                        var isFiltered = _achievementFilter.IsFiltered(activity);
                         var secondsSinceEpoch = activity.RuneMetricsStringDateToObject().Subtract(DateTime.UnixEpoch).TotalSeconds;
                         var message = $"[<t:{secondsSinceEpoch}:f>] **{player.Name}**: {activity.Details}";
                         activityMessages.Add(new AchievementMessage(message, isFiltered));
@@ -251,16 +199,6 @@ namespace QiQiBot.Services
                     await _discordMessageSender.SendBatchesAsync(channel, messageBatches, cancellationToken);
                 }
             }
-        }
-
-        private static bool ShouldFilterActivity(RuneMetricsActivityDTO activity)
-        {
-            if (string.IsNullOrEmpty(activity.Text))
-            {
-                return false;
-            }
-
-            return FilterActivityTextRegexes.Any(regex => regex.IsMatch(activity.Text)) || FilterActivityDetailRegexes.Any(regex => regex.IsMatch(activity.Details));
         }
     }
 }

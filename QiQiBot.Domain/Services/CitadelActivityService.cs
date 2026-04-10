@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using QiQiBot.Models;
 using QiQiBot.Services.Notifications;
-using System.Text.RegularExpressions;
+using QiQiBot.Services.RuneMetrics;
 using static QiQiBot.Models.RuneMetricsProfileDTO;
 
 namespace QiQiBot.Services
@@ -13,20 +13,12 @@ namespace QiQiBot.Services
         private readonly INotificationChannelResolver _notificationChannelResolver;
         private readonly IMessageBatcher _messageBatcher;
         private readonly IDiscordMessageSender _discordMessageSender;
+        private readonly ICitadelEventClassifier _citadelEventClassifier;
         private readonly ILogger<CitadelActivityService> _logger;
 
         private const int MaxNotificationsPerMessage = 10;
 
-        private enum CitadelEventType
-        {
-            Visited,
-            Capped
-        }
-
         private sealed record CitadelEvent(RuneMetricsActivityDTO Activity, CitadelEventType Type);
-
-        private static readonly Regex CitadelVisitRegex = new(@".*Visited my Clan Citadel.*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        private static readonly Regex CitadelCapRegex = new(@".*capped at my clan citadel.*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public CitadelActivityService(
             IPlayerService playerService,
@@ -34,6 +26,7 @@ namespace QiQiBot.Services
             INotificationChannelResolver notificationChannelResolver,
             IMessageBatcher messageBatcher,
             IDiscordMessageSender discordMessageSender,
+            ICitadelEventClassifier citadelEventClassifier,
             ILogger<CitadelActivityService> logger)
         {
             _playerService = playerService;
@@ -41,6 +34,7 @@ namespace QiQiBot.Services
             _notificationChannelResolver = notificationChannelResolver;
             _messageBatcher = messageBatcher;
             _discordMessageSender = discordMessageSender;
+            _citadelEventClassifier = citadelEventClassifier;
             _logger = logger;
         }
 
@@ -109,7 +103,7 @@ namespace QiQiBot.Services
 
                     var events = activities
                         .Where(x => x.RuneMetricsStringDateToObject() > player.MostRecentRuneMetricsEvent)
-                        .Select(activity => CreateCitadelEvent(activity))
+                        .Select(activity => CreateCitadelEvent(activity, _citadelEventClassifier))
                         .Where(evt => evt != null)
                         .Select(evt => evt!)
                         .ToList();
@@ -128,24 +122,10 @@ namespace QiQiBot.Services
             return result;
         }
 
-        private static CitadelEvent? CreateCitadelEvent(RuneMetricsActivityDTO activity)
+        private static CitadelEvent? CreateCitadelEvent(RuneMetricsActivityDTO activity, ICitadelEventClassifier citadelEventClassifier)
         {
-            if (activity == null || string.IsNullOrWhiteSpace(activity.Text))
-            {
-                return null;
-            }
-
-            if (CitadelCapRegex.IsMatch(activity.Text))
-            {
-                return new CitadelEvent(activity, CitadelEventType.Capped);
-            }
-
-            if (CitadelVisitRegex.IsMatch(activity.Text))
-            {
-                return new CitadelEvent(activity, CitadelEventType.Visited);
-            }
-
-            return null;
+            var eventType = citadelEventClassifier.Classify(activity);
+            return eventType == null ? null : new CitadelEvent(activity, eventType.Value);
         }
 
         private async Task SendCitadelNotifications(

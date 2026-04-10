@@ -10,6 +10,7 @@ using QiQiBot.Models;
 using QiQiBot.Services;
 using QiQiBot.Services.Abstractions;
 using QiQiBot.Services.Notifications;
+using QiQiBot.Services.RuneMetrics;
 
 namespace QiQiBot
 {
@@ -43,9 +44,23 @@ namespace QiQiBot
                 var client = new DiscordSocketClient(socketConfig);
                 return new DiscordSocketClientWrapper(client);
             });
+            builder.Services.Configure<AchievementFilterOptions>(options =>
+            {
+                var defaults = AchievementFilterOptions.CreateDefault();
+                options.TextPatterns = defaults.TextPatterns;
+                options.DetailPatterns = defaults.DetailPatterns;
+            });
+            builder.Services.Configure<CitadelPatternOptions>(options =>
+            {
+                var defaults = CitadelPatternOptions.CreateDefault();
+                options.VisitPattern = defaults.VisitPattern;
+                options.CapPattern = defaults.CapPattern;
+            });
             builder.Services.AddScoped<INotificationChannelResolver, NotificationChannelResolver>();
             builder.Services.AddScoped<IMessageBatcher, MessageBatcher>();
             builder.Services.AddScoped<IDiscordMessageSender, DiscordMessageSender>();
+            builder.Services.AddScoped<IAchievementFilter, RegexAchievementFilter>();
+            builder.Services.AddScoped<ICitadelEventClassifier, RegexCitadelEventClassifier>();
             builder.Services.AddScoped<IClanRegistrationService, ClanRegistrationService>();
             builder.Services.AddScoped<IGuildConfigurationService, GuildConfigurationService>();
             builder.Services.AddScoped<IClanQueryService, ClanQueryService>();
