@@ -30,7 +30,7 @@ public sealed class NotificationChannelResolver : INotificationChannelResolver
             return null;
         }
 
-        var channel = guild.GetTextChannel(channelId);
+        var channel = _discordClient.GetTextChannel(guildId, channelId);
         if (channel == null)
         {
             _logger.LogWarning(

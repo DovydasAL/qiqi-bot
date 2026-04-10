@@ -15,6 +15,7 @@ public interface IDiscordSocketClientWrapper
     Task StopAsync();
     Task BulkOverwriteGlobalApplicationCommandsAsync(ApplicationCommandProperties[] properties);
     SocketGuild? GetGuild(ulong id);
+    SocketTextChannel? GetTextChannel(ulong guildId, ulong channelId);
 
     IReadOnlyList<DiscordGuildUserInfo>? GetGuildUsers(ulong guildId);
     DiscordGuildUserInfo? GetGuildUser(ulong guildId, ulong userId);

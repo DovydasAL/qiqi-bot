@@ -61,6 +61,12 @@ public sealed class DiscordSocketClientWrapper : IDiscordSocketClientWrapper
         return _client.GetGuild(id);
     }
 
+    public SocketTextChannel? GetTextChannel(ulong guildId, ulong channelId)
+    {
+        var guild = _client.GetGuild(guildId);
+        return guild?.GetTextChannel(channelId);
+    }
+
     public IReadOnlyList<DiscordGuildUserInfo>? GetGuildUsers(ulong guildId)
     {
         var guild = _client.GetGuild(guildId);
