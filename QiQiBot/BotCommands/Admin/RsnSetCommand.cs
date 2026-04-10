@@ -4,6 +4,9 @@ using QiQiBot.Services;
 
 namespace QiQiBot.BotCommands;
 
+/// <summary>
+/// Allows administrators to set or update another member's RuneScape display name for the server.
+/// </summary>
 internal class RsnSetCommand(IRsnService rsnService, IDiscordSocketClientWrapper client) : IBotCommand
 {
     public static string Name => "rsn-set";
@@ -22,7 +25,7 @@ internal class RsnSetCommand(IRsnService rsnService, IDiscordSocketClientWrapper
         return command.Build();
     }
 
-    public async Task Handle(SocketSlashCommand command)
+    public async Task Handle(IBotCommandContext command)
     {
         if (!command.GuildId.HasValue)
         {
@@ -30,8 +33,8 @@ internal class RsnSetCommand(IRsnService rsnService, IDiscordSocketClientWrapper
             return;
         }
 
-        var userOption = command.Data.Options.FirstOrDefault(x => x.Name == "user");
-        var nameOption = command.Data.Options.FirstOrDefault(x => x.Name == "name");
+        var userOption = command.Options.FirstOrDefault(x => x.Name == "user");
+        var nameOption = command.Options.FirstOrDefault(x => x.Name == "name");
 
         var targetUser = userOption?.Value as SocketGuildUser;
         var providedName = nameOption?.Value?.ToString()?.Trim();
@@ -66,7 +69,7 @@ internal class RsnSetCommand(IRsnService rsnService, IDiscordSocketClientWrapper
         }
 
         var guild = _client.GetGuild(guildId);
-        var guildUser = guild.GetUser(targetUser.Id);
+        var guildUser = guild?.GetUser(targetUser.Id);
         if (guildUser is not null)
         {
             await guildUser.ModifyAsync(x => x.Nickname = providedName);

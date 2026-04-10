@@ -1,9 +1,11 @@
 using Discord;
-using Discord.WebSocket;
 using QiQiBot.Services;
 
 namespace QiQiBot.BotCommands
 {
+    /// <summary>
+    /// Enables or disables debug mode for the current Discord server.
+    /// </summary>
     public class ClanDebugCommand : IBotCommand
     {
         public static string Name => "clan-debug";
@@ -29,7 +31,7 @@ namespace QiQiBot.BotCommands
             return builder.Build();
         }
 
-        public async Task Handle(SocketSlashCommand command)
+        public async Task Handle(IBotCommandContext command)
         {
             if (!command.GuildId.HasValue)
             {
@@ -37,7 +39,7 @@ namespace QiQiBot.BotCommands
                 return;
             }
 
-            var enabled = (bool)command.Data.Options.First().Value;
+            var enabled = (bool)command.Options.First().Value!;
             await _clanService.SetDebugMode(command.GuildId.Value, enabled);
             await command.RespondAsync($"Clan debug mode has been {(enabled ? "enabled" : "disabled")}.");
         }

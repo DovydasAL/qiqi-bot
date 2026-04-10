@@ -105,9 +105,7 @@ internal sealed class BotService : IHostedService, IAsyncDisposable
     {
         using var scope = _serviceProvider.CreateScope();
 
-        var clanService = scope.ServiceProvider.GetRequiredService<IClanService>();
-        // clanService is not used here right now, but you might use it later;
-        // if not needed, you can remove this resolution.
+        var commandContext = new DiscordBotCommandContext(command);
 
         IBotCommand? handler = command.CommandName switch
         {
@@ -140,7 +138,7 @@ internal sealed class BotService : IHostedService, IAsyncDisposable
 
         if (handler is null)
         {
-            await command.RespondAsync(
+            await commandContext.RespondAsync(
                 "Sorry, an error occurred while processing your command.");
             _logger.LogWarning("No handler registered for command {CommandName}.", command.CommandName);
             return;
@@ -148,14 +146,14 @@ internal sealed class BotService : IHostedService, IAsyncDisposable
 
         try
         {
-            await handler.Handle(command);
+            await handler.Handle(commandContext);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unhandled exception while handling command {CommandName}.", command.CommandName);
-            if (!command.HasResponded)
+            if (!commandContext.HasResponded)
             {
-                await command.RespondAsync(
+                await commandContext.RespondAsync(
                     "Sorry, an unexpected error occurred while processing your command.");
             }
         }

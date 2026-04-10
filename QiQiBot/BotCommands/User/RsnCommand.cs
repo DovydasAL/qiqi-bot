@@ -1,9 +1,11 @@
 using Discord;
-using Discord.WebSocket;
 using QiQiBot.Services;
 
 namespace QiQiBot.BotCommands;
 
+/// <summary>
+/// Links the calling user's RuneScape display name to their Discord account in the current server.
+/// </summary>
 internal class RsnCommand(IRsnService rsnService, IDiscordSocketClientWrapper client) : IBotCommand
 {
     public static string Name => "rsn";
@@ -20,7 +22,7 @@ internal class RsnCommand(IRsnService rsnService, IDiscordSocketClientWrapper cl
         return command.Build();
     }
 
-    public async Task Handle(SocketSlashCommand command)
+    public async Task Handle(IBotCommandContext command)
     {
         if (!command.GuildId.HasValue)
         {
@@ -28,7 +30,7 @@ internal class RsnCommand(IRsnService rsnService, IDiscordSocketClientWrapper cl
             return;
         }
 
-        var providedName = command.Data.Options.FirstOrDefault()?.Value?.ToString()?.Trim();
+        var providedName = command.Options.FirstOrDefault()?.Value?.ToString()?.Trim();
         if (string.IsNullOrWhiteSpace(providedName) || providedName.Length > 12)
         {
             await command.RespondAsync("RuneScape names must be between 1 and 12 characters.", ephemeral: true);
@@ -36,7 +38,7 @@ internal class RsnCommand(IRsnService rsnService, IDiscordSocketClientWrapper cl
         }
 
         var guildId = command.GuildId.Value;
-        var userId = command.User.Id;
+        var userId = command.UserId;
         var previousName = await _rsnService.GetRsnAsync(guildId, userId);
         await _rsnService.SetRsnAsync(guildId, userId, providedName);
 
@@ -52,8 +54,12 @@ internal class RsnCommand(IRsnService rsnService, IDiscordSocketClientWrapper cl
         {
             await command.RespondAsync($"Updated your RuneScape name from {previousName} to {providedName}. Your Discord nickname has also been changed for this server.", ephemeral: true);
         }
+
         var guild = _client.GetGuild(guildId);
-        var guildUser = guild.GetUser(userId);
-        await guildUser.ModifyAsync(x => x.Nickname = providedName);
+        var guildUser = guild?.GetUser(userId);
+        if (guildUser is not null)
+        {
+            await guildUser.ModifyAsync(x => x.Nickname = providedName);
+        }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Discord;
-using Discord.WebSocket;
 using QiQiBot.Exceptions;
 using QiQiBot.Models;
 using QiQiBot.Services;
@@ -7,6 +6,9 @@ using System.Text;
 
 namespace QiQiBot.BotCommands
 {
+    /// <summary>
+    /// Generates a CSV report of clan members who have capped since the configured reset time.
+    /// </summary>
     public class ClanCappedCommand : IBotCommand
     {
         public static string Name => "clan-capped";
@@ -25,7 +27,7 @@ namespace QiQiBot.BotCommands
             return command.Build();
         }
 
-        public async Task Handle(SocketSlashCommand command)
+        public async Task Handle(IBotCommandContext command)
         {
             if (!command.GuildId.HasValue)
             {
@@ -38,7 +40,7 @@ namespace QiQiBot.BotCommands
             {
                 guild = await _clanService.GetGuild(command.GuildId.Value);
             }
-            catch (NoClanRegisteredException ex)
+            catch (NoClanRegisteredException)
             {
                 await command.RespondAsync("No clan has been set for this server. Use `/clan-register` to set the clan for this server.");
                 return;
@@ -53,6 +55,7 @@ namespace QiQiBot.BotCommands
                 await command.RespondAsync("Cap reset day and time have not been set for this server. Use `/clan-citadel-reset` to set the cap reset day and time for this server.");
                 return;
             }
+
             // 0-6 for Sunday-Saturday
             var clanCapDay = guild.CapResetDay.Value;
             if (clanCapDay < 0 || clanCapDay > 6)
@@ -60,6 +63,7 @@ namespace QiQiBot.BotCommands
                 await command.RespondAsync("Cap reset day is invalid for this server. Use `/clan-citadel-reset` to set the cap reset day and time again.");
                 return;
             }
+
             // 00:00-23:59 for the time of day
             var clanCapTime = guild.CapResetTime;
             if (!TimeSpan.TryParse(clanCapTime, out var clanCapTimeOfDay))

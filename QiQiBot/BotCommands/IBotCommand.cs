@@ -7,6 +7,6 @@ namespace QiQiBot.BotCommands
     {
         static abstract string Name { get; }
         static abstract ApplicationCommandProperties BuildCommand();
-        Task Handle(SocketSlashCommand command);
+        Task Handle(IBotCommandContext command);
     }
 }

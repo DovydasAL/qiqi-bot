@@ -1,9 +1,11 @@
 ﻿using Discord;
-using Discord.WebSocket;
 using QiQiBot.Services;
 
 namespace QiQiBot.BotCommands
 {
+    /// <summary>
+    /// Sets or clears the channel used for clan achievement notifications.
+    /// </summary>
     public class ClanSetAchievementChannel : IBotCommand
     {
         public static string Name => "clan-achievement-channel";
@@ -25,7 +27,7 @@ namespace QiQiBot.BotCommands
             return command.Build();
         }
 
-        public async Task Handle(SocketSlashCommand command)
+        public async Task Handle(IBotCommandContext command)
         {
             if (!command.GuildId.HasValue)
             {
@@ -33,8 +35,7 @@ namespace QiQiBot.BotCommands
                 return;
             }
 
-            var channelOption = command.Data.Options.FirstOrDefault();
-            var channel = channelOption?.Value as SocketChannel;
+            var channel = command.Options.FirstOrDefault()?.Value as IChannel;
 
             await _clanService.SetAchievementChannel(command.GuildId.Value, channel?.Id);
             var response = channel == null

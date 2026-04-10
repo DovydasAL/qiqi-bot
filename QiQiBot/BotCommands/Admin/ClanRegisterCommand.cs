@@ -1,9 +1,11 @@
 ﻿using Discord;
-using Discord.WebSocket;
 using QiQiBot.Services;
 
 namespace QiQiBot.BotCommands
 {
+    /// <summary>
+    /// Registers a clan for the current Discord server.
+    /// </summary>
     internal class ClanRegisterCommand : IBotCommand
     {
         public static string Name => "clan-register";
@@ -25,7 +27,7 @@ namespace QiQiBot.BotCommands
             return command.Build();
         }
 
-        public async Task Handle(SocketSlashCommand command)
+        public async Task Handle(IBotCommandContext command)
         {
             if (!command.GuildId.HasValue)
             {
@@ -33,7 +35,7 @@ namespace QiQiBot.BotCommands
                 return;
             }
 
-            var clanName = command.Data.Options.First().Value.ToString();
+            var clanName = command.Options.FirstOrDefault()?.Value?.ToString();
             if (string.IsNullOrEmpty(clanName) || clanName.Length > 20)
             {
                 await command.RespondAsync("Clan name cannot be empty and must be 20 characters or less.");

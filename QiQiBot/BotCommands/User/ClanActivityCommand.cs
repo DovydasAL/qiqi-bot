@@ -1,5 +1,4 @@
 ﻿using Discord;
-using Discord.WebSocket;
 using QiQiBot.Exceptions;
 using QiQiBot.Models;
 using QiQiBot.Services;
@@ -7,6 +6,9 @@ using System.Text;
 
 namespace QiQiBot.BotCommands
 {
+    /// <summary>
+    /// Generates a clan activity CSV report showing each member's latest known activity date.
+    /// </summary>
     internal class ClanActivityCommand : IBotCommand
     {
         public static string Name => "clan-activity";
@@ -25,7 +27,7 @@ namespace QiQiBot.BotCommands
             return command.Build();
         }
 
-        public async Task Handle(SocketSlashCommand command)
+        public async Task Handle(IBotCommandContext command)
         {
             if (!command.GuildId.HasValue)
             {
@@ -38,7 +40,7 @@ namespace QiQiBot.BotCommands
             {
                 clan = await _clanService.GetClanAsync(command.GuildId.Value);
             }
-            catch (NoClanRegisteredException ex)
+            catch (NoClanRegisteredException)
             {
                 await command.RespondAsync("No clan has been set for this server. Use `/clan-register` to set the clan for this server.");
                 return;
@@ -70,8 +72,8 @@ namespace QiQiBot.BotCommands
                         ActivityDate = activityDate
                     };
                 })
-                .OrderBy(x => x.ActivityDate.HasValue ? 0 : 1)   // non-null first
-                .ThenBy(x => x.ActivityDate)                     // oldest to newest; use .ThenByDescending for newest first
+                .OrderBy(x => x.ActivityDate.HasValue ? 0 : 1)
+                .ThenBy(x => x.ActivityDate)
                 .ThenBy(x => x.Name)
                 .ToList();
 

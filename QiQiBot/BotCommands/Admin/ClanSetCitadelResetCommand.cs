@@ -1,9 +1,11 @@
 ﻿using Discord;
-using Discord.WebSocket;
 using QiQiBot.Services;
 
 namespace QiQiBot.BotCommands
 {
+    /// <summary>
+    /// Sets the configured day and time for the clan citadel reset in the current server.
+    /// </summary>
     public class ClanSetCitadelResetCommand : IBotCommand
     {
         public static string Name => "clan-citadel-reset";
@@ -43,7 +45,7 @@ namespace QiQiBot.BotCommands
             return command.Build();
         }
 
-        public async Task Handle(SocketSlashCommand command)
+        public async Task Handle(IBotCommandContext command)
         {
             if (!command.GuildId.HasValue)
             {
@@ -51,8 +53,8 @@ namespace QiQiBot.BotCommands
                 return;
             }
 
-            var day = (long)command.Data.Options.First().Value;
-            var time = command.Data.Options.Last().Value.ToString();
+            var day = (long)command.Options.First().Value!;
+            var time = command.Options.Last().Value?.ToString();
             Console.WriteLine($"Received citadel reset command with day: {day}, time: {time}");
             await _clanService.SetCitadelResetTime(command.GuildId.Value, day, time);
             await command.RespondAsync($"Citadel reset time has been set to {(DayOfWeek)day} at {time}.");
