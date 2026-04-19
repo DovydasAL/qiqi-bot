@@ -8,7 +8,7 @@ namespace QiQiBot.BotCommands;
 /// </summary>
 public class RsnSetCommand(IRsnService rsnService, IDiscordSocketClientWrapper client) : IBotCommand
 {
-    public static string Name => "rsn-set";
+    public static string Name => "clan-member-set-rsn";
 
     private readonly IRsnService _rsnService = rsnService;
     private readonly IDiscordSocketClientWrapper _client = client;

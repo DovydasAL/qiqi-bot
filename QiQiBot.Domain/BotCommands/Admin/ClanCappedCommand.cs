@@ -24,6 +24,7 @@ namespace QiQiBot.BotCommands
             var command = new SlashCommandBuilder();
             command.WithName(Name);
             command.WithDescription("View who capped since last reset");
+            command.WithDefaultMemberPermissions(GuildPermission.Administrator);
             return command.Build();
         }
 

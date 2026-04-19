@@ -24,6 +24,7 @@ namespace QiQiBot.BotCommands
             var command = new SlashCommandBuilder();
             command.WithName(Name);
             command.WithDescription("View activity for members in clan");
+            command.WithDefaultMemberPermissions(GuildPermission.Administrator);
             return command.Build();
         }
 
